@@ -41,125 +41,28 @@ BENCHMARK(BM_HashmapCreation)
     ->RangeMultiplier(64)->Ranges({{1<<4, 1<<8}, {1<<4, 1<<8}})
     ;
 
-template <typename K, typename V>
 static void BM_HashmapInsert(State& state)
 {
-    K key;
-    V value;
+    int insertions = state.range(0);
+    int keySize = state.range(1);
+    int valueSize = state.range(2);
+    std::vector<std::vector<char>> keys(insertions, std::vector<char>(keySize));
+    std::vector<std::vector<char>> values(insertions, std::vector<char>(valueSize));
+    for (auto& key : keys)
+        fillRandom(key.data(), keySize);
+    for (auto& value : values)
+        fillRandom(value.data(), valueSize);
 
     for (auto _ : state)
     {
         hashmap_t hm;
-        hashmap_init(&hm, sizeof(K), sizeof(V));
-        for (size_t i = 0; i != state.range(0); ++i)
-        {
-            memcpy(&key, &i, sizeof(uint32_t));
-            memcpy(&value, &i, sizeof(uint32_t));
-            hashmap_insert(&hm, &key, &value);
-        }
+        hashmap_init(&hm, keySize, valueSize);
         DoNotOptimize(hm.storage);
+        for (int i = 0; i != state.range(0); ++i)
+            hashmap_insert(&hm, keys[i].data(), values[i].data());
         ClobberMemory();
         hashmap_deinit(&hm);
     }
 }
 
-template <typename K, typename V>
-static void BM_StdUnorderedMap(State& state)
-{
-    uint32_t insertions = state.range(0);
-    std::vector<K> keys(insertions);
-    std::vector<V> values(insertions);
-    for (auto& key : keys)
-        fillRandom((char*)&key, sizeof(K));
-    for (char* value : values)
-        fillRandom(value, sizeof(V));
-
-    for (auto _ : state)
-    {
-        std::unordered_map<K, V> hm;
-        for (size_t i = 0; i != insertions; ++i)
-        {
-            uint8_t key = keys[i];
-            hm.emplace(key, values[i]);
-        }
-        ClobberMemory();
-    }
-}
-
-#define BENCH_KV(bench, k, v) \
-    BENCHMARK_TEMPLATE(bench, k, v)->RangeMultiplier(2)->Ranges({{1<<0, 1<<16}});
-
-BENCH_KV(BM_HashmapInsert, uint8_t, char[1<<0]);
-BENCH_KV(BM_HashmapInsert, uint8_t, char[1<<1]);
-BENCH_KV(BM_HashmapInsert, uint8_t, char[1<<2]);
-BENCH_KV(BM_HashmapInsert, uint8_t, char[1<<3]);
-BENCH_KV(BM_HashmapInsert, uint8_t, char[1<<4]);
-BENCH_KV(BM_HashmapInsert, uint8_t, char[1<<5]);
-BENCH_KV(BM_HashmapInsert, uint8_t, char[1<<6]);
-BENCH_KV(BM_HashmapInsert, uint8_t, char[1<<7]);
-BENCH_KV(BM_HashmapInsert, uint8_t, char[1<<8]);
-BENCH_KV(BM_HashmapInsert, uint16_t, char[1<<0]);
-BENCH_KV(BM_HashmapInsert, uint16_t, char[1<<1]);
-BENCH_KV(BM_HashmapInsert, uint16_t, char[1<<2]);
-BENCH_KV(BM_HashmapInsert, uint16_t, char[1<<3]);
-BENCH_KV(BM_HashmapInsert, uint16_t, char[1<<4]);
-BENCH_KV(BM_HashmapInsert, uint16_t, char[1<<5]);
-BENCH_KV(BM_HashmapInsert, uint16_t, char[1<<6]);
-BENCH_KV(BM_HashmapInsert, uint16_t, char[1<<7]);
-BENCH_KV(BM_HashmapInsert, uint16_t, char[1<<8]);
-BENCH_KV(BM_HashmapInsert, uint32_t, char[1<<0]);
-BENCH_KV(BM_HashmapInsert, uint32_t, char[1<<1]);
-BENCH_KV(BM_HashmapInsert, uint32_t, char[1<<2]);
-BENCH_KV(BM_HashmapInsert, uint32_t, char[1<<3]);
-BENCH_KV(BM_HashmapInsert, uint32_t, char[1<<4]);
-BENCH_KV(BM_HashmapInsert, uint32_t, char[1<<5]);
-BENCH_KV(BM_HashmapInsert, uint32_t, char[1<<6]);
-BENCH_KV(BM_HashmapInsert, uint32_t, char[1<<7]);
-BENCH_KV(BM_HashmapInsert, uint32_t, char[1<<8]);
-BENCH_KV(BM_HashmapInsert, uint64_t, char[1<<0]);
-BENCH_KV(BM_HashmapInsert, uint64_t, char[1<<1]);
-BENCH_KV(BM_HashmapInsert, uint64_t, char[1<<2]);
-BENCH_KV(BM_HashmapInsert, uint64_t, char[1<<3]);
-BENCH_KV(BM_HashmapInsert, uint64_t, char[1<<4]);
-BENCH_KV(BM_HashmapInsert, uint64_t, char[1<<5]);
-BENCH_KV(BM_HashmapInsert, uint64_t, char[1<<6]);
-BENCH_KV(BM_HashmapInsert, uint64_t, char[1<<7]);
-BENCH_KV(BM_HashmapInsert, uint64_t, char[1<<8]);
-
-
-BENCH_KV(BM_StdUnorderedMap, uint8_t, char[1<<0]);
-BENCH_KV(BM_StdUnorderedMap, uint8_t, char[1<<1]);
-BENCH_KV(BM_StdUnorderedMap, uint8_t, char[1<<2]);
-BENCH_KV(BM_StdUnorderedMap, uint8_t, char[1<<3]);
-BENCH_KV(BM_StdUnorderedMap, uint8_t, char[1<<4]);
-BENCH_KV(BM_StdUnorderedMap, uint8_t, char[1<<5]);
-BENCH_KV(BM_StdUnorderedMap, uint8_t, char[1<<6]);
-BENCH_KV(BM_StdUnorderedMap, uint8_t, char[1<<7]);
-BENCH_KV(BM_StdUnorderedMap, uint8_t, char[1<<8]);
-BENCH_KV(BM_StdUnorderedMap, uint16_t, char[1<<0]);
-BENCH_KV(BM_StdUnorderedMap, uint16_t, char[1<<1]);
-BENCH_KV(BM_StdUnorderedMap, uint16_t, char[1<<2]);
-BENCH_KV(BM_StdUnorderedMap, uint16_t, char[1<<3]);
-BENCH_KV(BM_StdUnorderedMap, uint16_t, char[1<<4]);
-BENCH_KV(BM_StdUnorderedMap, uint16_t, char[1<<5]);
-BENCH_KV(BM_StdUnorderedMap, uint16_t, char[1<<6]);
-BENCH_KV(BM_StdUnorderedMap, uint16_t, char[1<<7]);
-BENCH_KV(BM_StdUnorderedMap, uint16_t, char[1<<8]);
-BENCH_KV(BM_StdUnorderedMap, uint32_t, char[1<<0]);
-BENCH_KV(BM_StdUnorderedMap, uint32_t, char[1<<1]);
-BENCH_KV(BM_StdUnorderedMap, uint32_t, char[1<<2]);
-BENCH_KV(BM_StdUnorderedMap, uint32_t, char[1<<3]);
-BENCH_KV(BM_StdUnorderedMap, uint32_t, char[1<<4]);
-BENCH_KV(BM_StdUnorderedMap, uint32_t, char[1<<5]);
-BENCH_KV(BM_StdUnorderedMap, uint32_t, char[1<<6]);
-BENCH_KV(BM_StdUnorderedMap, uint32_t, char[1<<7]);
-BENCH_KV(BM_StdUnorderedMap, uint32_t, char[1<<8]);
-BENCH_KV(BM_StdUnorderedMap, uint64_t, char[1<<0]);
-BENCH_KV(BM_StdUnorderedMap, uint64_t, char[1<<1]);
-BENCH_KV(BM_StdUnorderedMap, uint64_t, char[1<<2]);
-BENCH_KV(BM_StdUnorderedMap, uint64_t, char[1<<3]);
-BENCH_KV(BM_StdUnorderedMap, uint64_t, char[1<<4]);
-BENCH_KV(BM_StdUnorderedMap, uint64_t, char[1<<5]);
-BENCH_KV(BM_StdUnorderedMap, uint64_t, char[1<<6]);
-BENCH_KV(BM_StdUnorderedMap, uint64_t, char[1<<7]);
-BENCH_KV(BM_StdUnorderedMap, uint64_t, char[1<<8]);
+BENCHMARK(BM_HashmapInsert)->RangeMultiplier(2)->Ranges({{1<<0, 1<<16}, {1<<0, 1<<10}, {1<<0, 1<<16}});
