@@ -1,9 +1,5 @@
 cmake_minimum_required (VERSION 3.9)
 
-if (NOT DEFINED CMAKE_BUILD_TYPE)
-    set (CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
-endif()
-
 include (GNUInstallDirs)
 
 ###############################################################################
@@ -51,6 +47,7 @@ add_library (cstructures ${CSTRUCTURES_LIB_TYPE}
     "src/hashmap.c"
     "src/init.c"
     "src/memory.c"
+    "src/string.c"
     "src/vector.c"
     $<$<PLATFORM_ID:Linux>:src/platform/linux/backtrace_linux.c>)
 set_property (TARGET cstructures

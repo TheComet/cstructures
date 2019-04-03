@@ -11,8 +11,10 @@
 
 #if defined(CSTRUCTURES_MEMORY_DEBUGGING)
 static uintptr_t g_allocations = 0;
-static uintptr_t d_deg_allocations = 0;
+static uintptr_t d_deallocations = 0;
 static uintptr_t g_ignore_hm_malloc = 0;
+uintptr_t g_bytes_in_use = 0;
+uintptr_t g_bytes_in_use_peak = 0;
 static struct hashmap_t g_report;
 
 typedef struct report_info_t
@@ -27,10 +29,12 @@ typedef struct report_info_t
 
 /* ------------------------------------------------------------------------- */
 int
-cstructures_memory_init(void)
+memory_init(void)
 {
     g_allocations = 0;
-    d_deg_allocations = 0;
+    d_deallocations = 0;
+    g_bytes_in_use = 0;
+    g_bytes_in_use_peak = 0;
 
     /*
      * Hashmap will call malloc during init, need to ignore this to avoid
@@ -68,6 +72,10 @@ cstructures_malloc(uintptr_t size)
      */
     if (!g_ignore_hm_malloc)
     {
+        g_bytes_in_use += size;
+        if (g_bytes_in_use_peak < g_bytes_in_use)
+            g_bytes_in_use_peak = g_bytes_in_use;
+
         g_ignore_hm_malloc = 1;
 
             /* record the location and size of the allocation */
@@ -123,6 +131,8 @@ cstructures_realloc(void* p, uintptr_t new_size)
         report_info_t* info = (report_info_t*)hashmap_erase(&g_report, &old_p);
         if (info)
         {
+            g_bytes_in_use -= info->size;
+
 #   if defined(CSTRUCTURES_MEMORY_BACKTRACE)
             if (info->backtrace)
                 free(info->backtrace);
@@ -161,6 +171,11 @@ cstructures_realloc(void* p, uintptr_t new_size)
     if (!g_ignore_hm_malloc)
     {
         report_info_t info = {0};
+
+        g_bytes_in_use += new_size;
+        if (g_bytes_in_use_peak < g_bytes_in_use)
+            g_bytes_in_use_peak = g_bytes_in_use;
+
         g_ignore_hm_malloc = 1;
 
             /* record the location and size of the allocation */
@@ -194,6 +209,7 @@ cstructures_free(void* p)
         report_info_t* info = (report_info_t*)hashmap_erase(&g_report, &p);
         if (info)
         {
+            g_bytes_in_use -= info->size;
 #   if defined(CSTRUCTURES_MEMORY_BACKTRACE)
             if (info->backtrace)
                 free(info->backtrace);
@@ -227,7 +243,7 @@ cstructures_free(void* p)
 
     if (p)
     {
-        ++d_deg_allocations;
+        ++d_deallocations;
         free(p);
     }
     else
@@ -236,46 +252,47 @@ cstructures_free(void* p)
 
 /* ------------------------------------------------------------------------- */
 uintptr_t
-cstructures_memory_deinit(void)
+memory_deinit(void)
 {
     uintptr_t leaks;
 
     --g_allocations; /* this is the single allocation still held by the report hashmap */
 
-    printf("=========================================\n");
-    printf("Inverse Kinematics Memory Report\n");
-    printf("=========================================\n");
+    fprintf(stderr, "=========================================\n");
+    fprintf(stderr, "Memory Report\n");
+    fprintf(stderr, "=========================================\n");
 
     /* report details on any g_allocations that were not de-allocated */
     if (hashmap_count(&g_report) != 0)
     {
         HASHMAP_FOR_EACH(&g_report, void*, report_info_t, key, info)
 
-            printf("  un-freed memory at %p, size %p\n", (void*)info->location, (void*)info->size);
+            fprintf(stderr, "  un-freed memory at %p, size %p\n", (void*)info->location, (void*)info->size);
             mutated_string_and_hex_dump((void*)info->location, info->size);
 
 #   if defined(CSTRUCTURES_MEMORY_BACKTRACE)
-            printf("  Backtrace to where malloc() was called:\n");
+            fprintf(stderr, "  Backtrace to where malloc() was called:\n");
             {
                 intptr_t i;
                 for (i = BACKTRACE_OMIT_COUNT; i < info->backtrace_size; ++i)
-                    printf("      %s\n", info->backtrace[i]);
+                    fprintf(stderr, "      %s\n", info->backtrace[i]);
             }
             free(info->backtrace); /* this was allocated when malloc() was called */
-            printf("  -----------------------------------------\n");
+            fprintf(stderr, "  -----------------------------------------\n");
 #   endif
 
         HASHMAP_END_EACH
 
-        printf("=========================================\n");
+        fprintf(stderr, "=========================================\n");
     }
 
     /* overall report */
-    leaks = (g_allocations > d_deg_allocations ? g_allocations - d_deg_allocations : d_deg_allocations - g_allocations);
-    printf("allocations: %lu\n", g_allocations);
-    printf("deallocations: %lu\n", d_deg_allocations);
-    printf("memory leaks: %lu\n", leaks);
-    printf("=========================================\n");
+    leaks = (g_allocations > d_deallocations ? g_allocations - d_deallocations : d_deallocations - g_allocations);
+    fprintf(stderr, "allocations: %lu\n", g_allocations);
+    fprintf(stderr, "deallocations: %lu\n", d_deallocations);
+    fprintf(stderr, "memory leaks: %lu\n", leaks);
+    fprintf(stderr, "peak memory usage: %lu bytes\n", g_bytes_in_use_peak);
+    fprintf(stderr, "=========================================\n");
 
     ++g_allocations; /* this is the single allocation still held by the report hashmap */
     g_ignore_hm_malloc = 1;
@@ -283,6 +300,20 @@ cstructures_memory_deinit(void)
     g_ignore_hm_malloc = 0;
 
     return leaks;
+}
+
+/* ------------------------------------------------------------------------- */
+uintptr_t
+memory_get_num_allocs(void)
+{
+    return hashmap_count(&g_report);
+}
+
+/* ------------------------------------------------------------------------- */
+uintptr_t
+memory_get_memory_usage(void)
+{
+    return g_bytes_in_use;
 }
 
 #else /* CSTRUCTURES_MEMORY_DEBUGGING */
@@ -335,11 +366,11 @@ mutated_string_and_hex_dump(void* data, uintptr_t length_in_bytes)
             dump[i] = '.';
 
     /* dump */
-    printf("  mutated string dump: %s\n", dump);
-    printf("  hex dump: ");
+    fprintf(stderr, "  mutated string dump: %s\n", dump);
+    fprintf(stderr, "  hex dump: ");
     for (i = 0; i != length_in_bytes; ++i)
-        printf(" %02x", (unsigned char)dump[i]);
-    printf("\n");
+        fprintf(stderr, " %02x", (unsigned char)dump[i]);
+    fprintf(stderr, "\n");
 
     free(dump);
 }
