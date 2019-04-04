@@ -318,29 +318,10 @@ memory_get_memory_usage(void)
 
 #else /* CSTRUCTURES_MEMORY_DEBUGGING */
 
-int cstructures_memory_init(void) { return 0; }
-uintptr_t cstructures_memory_deinit(void) { return 0; }
-
-/* ------------------------------------------------------------------------- */
-void*
-cstructures_malloc(uintptr_t size)
-{
-    return malloc(size);
-}
-
-/* ------------------------------------------------------------------------- */
-void*
-cstructures_realloc(void* p, uintptr_t new_size)
-{
-    return realloc(p, new_size);
-}
-
-/* ------------------------------------------------------------------------- */
-void
-cstructures_free(void* p)
-{
-    free(p);
-}
+int memory_init(void)                   { return 0; }
+uintptr_t memory_deinit(void)           { return 0; }
+uintptr_t memory_get_num_allocs(void)   { return 0; }
+uintptr_t memory_get_memory_usage(void) { return 0; }
 
 #endif /* CSTRUCTURES_MEMORY_DEBUGGING */
 

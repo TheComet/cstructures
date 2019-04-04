@@ -21,6 +21,7 @@ typedef uint64_t vec_size_t;
 #else
 typedef uint32_t vec_size_t;
 #endif
+typedef intptr_t vec_idx_t;
 
 enum vec_status_e
 {
@@ -31,7 +32,7 @@ enum vec_status_e
 
 struct vec_t
 {
-    uint8_t* data;               /* pointer to the contiguous section of memory */
+    uint8_t* data;            /* pointer to the contiguous section of memory */
     vec_size_t capacity;      /* how many elements actually fit into the allocated space */
     vec_size_t count;         /* number of elements inserted */
     vec_size_t element_size;  /* how large one element is in bytes */
@@ -188,7 +189,7 @@ vector_back(const struct vec_t* vector);
  * @return A pointer to the emplaced element. See warning and use with caution.
  */
 CSTRUCTURES_PUBLIC_API enum vec_status_e
-vector_insert_emplace(struct vec_t* vector, vec_size_t index, void** data);
+vector_insert_emplace(struct vec_t* vector, vec_idx_t index, void** data);
 
 /*!
  * @brief Inserts (copies) a new element at the specified index.
@@ -203,7 +204,7 @@ vector_insert_emplace(struct vec_t* vector, vec_size_t index, void** data);
  * created. If this is not the case then it could cause undefined behaviour.
  */
 CSTRUCTURES_PUBLIC_API enum vec_status_e
-vector_insert(struct vec_t* vector, vec_size_t index, void* data);
+vector_insert(struct vec_t* vector, vec_idx_t index, void* data);
 
 /*!
  * @brief Erases the specified element from the vector.
@@ -213,12 +214,13 @@ vector_insert(struct vec_t* vector, vec_size_t index, void* data);
  * ranges from **0** to **vector_count()-1**.
  */
 CSTRUCTURES_PUBLIC_API void
-vector_erase_index(struct vec_t* vector, vec_size_t index);
+vector_erase_index(struct vec_t* vector, vec_idx_t index);
 
 /*!
  * @brief Removes the element in the vector pointed to by **element**.
  * @param[in] vector The vector from which to erase the data.
  * @param[in] element A pointer to an element within the vector.
+ * @note The pointer must point into the vector's data.
  */
 CSTRUCTURES_PUBLIC_API void
 vector_erase_element(struct vec_t* vector, void* element);
@@ -237,7 +239,10 @@ vector_erase_element(struct vec_t* vector, void* element);
  * returned.
  */
 CSTRUCTURES_PUBLIC_API void*
-vector_get_element(const struct vec_t*, vec_size_t index);
+vector_get_element(const struct vec_t*, vec_idx_t index);
+
+CSTRUCTURES_PUBLIC_API vec_idx_t
+vector_find_element(const struct vec_t* vector, void* element);
 
 /*!
  * @brief Convenient macro for iterating a vector's elements.

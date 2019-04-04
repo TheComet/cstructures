@@ -9,6 +9,7 @@
 #   define FREE     cstructures_free
 #   define REALLOC  cstructures_realloc
 #else
+#   include <stdlib.h>
 #   define MALLOC   malloc
 #   define FREE     free
 #   define REALLOC  realloc
