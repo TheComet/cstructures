@@ -1,10 +1,9 @@
 #include <string.h>
-#include <stdlib.h>
 #include <assert.h>
 #include "cstructures/vector.h"
 #include "cstructures/memory.h"
 
-#define VEC_INVALID_INDEX (vec_size_t)-1
+#define VEC_INVALID_INDEX (vec_idx_t)-1
 
 #define VECTOR_NEEDS_REALLOC(x) \
         ((x)->count == (x)->capacity)
@@ -26,7 +25,7 @@
  */
 static enum vec_status_e
 vector_realloc(struct vec_t *vector,
-              vec_size_t insertion_index,
+              vec_idx_t insertion_index,
               vec_size_t new_count);
 
 /* ----------------------------------------------------------------------------
@@ -222,9 +221,9 @@ vector_back(const struct vec_t* vector)
 
 /* ------------------------------------------------------------------------- */
 enum vec_status_e
-vector_insert_emplace(struct vec_t* vector, vec_size_t index, void** emplaced)
+vector_insert_emplace(struct vec_t* vector, vec_idx_t index, void** emplaced)
 {
-    vec_size_t offset;
+    vec_idx_t offset;
     enum vec_status_e status;
 
     assert(vector);
@@ -249,9 +248,9 @@ vector_insert_emplace(struct vec_t* vector, vec_size_t index, void** emplaced)
         /* shift all elements up by one to make space for insertion */
         vec_size_t total_size = vector->count * vector->element_size;
         offset = vector->element_size * index;
-        memmove((void*)((uintptr_t)vector->data + offset + vector->element_size),
-                (void*)((uintptr_t)vector->data + offset),
-                total_size - offset);
+        memmove(vector->data + offset + vector->element_size,
+                vector->data + offset,
+                total_size - (vec_size_t)offset);
     }
 
     /* element is inserted */
@@ -265,7 +264,7 @@ vector_insert_emplace(struct vec_t* vector, vec_size_t index, void** emplaced)
 
 /* ------------------------------------------------------------------------- */
 enum vec_status_e
-vector_insert(struct vec_t* vector, vec_size_t index, void* data)
+vector_insert(struct vec_t* vector, vec_idx_t index, void* data)
 {
     void* emplaced;
     enum vec_status_e status;
@@ -281,7 +280,7 @@ vector_insert(struct vec_t* vector, vec_size_t index, void* data)
 
 /* ------------------------------------------------------------------------- */
 void
-vector_erase_index(struct vec_t* vector, vec_size_t index)
+vector_erase_index(struct vec_t* vector, vec_idx_t index)
 {
     assert(vector);
 
@@ -294,11 +293,11 @@ vector_erase_index(struct vec_t* vector, vec_size_t index)
     else
     {
         /* shift memory right after the specified element down by one element */
-        vec_size_t offset = vector->element_size * index;  /* offset to the element being erased in bytes */
-        vec_size_t total_size = vector->element_size * vector->count; /* total current size in bytes */
-        memmove((void*)((uintptr_t)vector->data + offset),   /* target is to overwrite the element specified by index */
-                (void*)((uintptr_t)vector->data + offset + vector->element_size),    /* copy beginning from one element ahead of element to be erased */
-                total_size - offset - vector->element_size);     /* copying number of elements after element to be erased */
+        vec_idx_t offset = vector->element_size * index;                  /* offset to the element being erased in bytes */
+        vec_size_t total_size = vector->element_size * vector->count;     /* total current size in bytes */
+        memmove(vector->data + offset,                                    /* target is to overwrite the element specified by index */
+                vector->data + offset + vector->element_size,             /* copy beginning from one element ahead of element to be erased */
+                total_size - (vec_size_t)offset - vector->element_size);  /* copying number of elements after element to be erased */
         --vector->count;
     }
 }
@@ -307,40 +306,53 @@ vector_erase_index(struct vec_t* vector, vec_size_t index)
 void
 vector_erase_element(struct vec_t* vector, void* element)
 {
-    uintptr_t last_element;
+    void* last_element;
 
     assert(vector);
-    last_element = (uintptr_t)vector->data + (vector->count-1) * vector->element_size;
+    last_element = vector->data + (vector->count-1) * vector->element_size;
     assert(element);
-    assert((uintptr_t)element >= (uintptr_t)vector->data);
-    assert((uintptr_t)element <= (uintptr_t)last_element);
+    assert(element >= (void*)vector->data);
+    assert(element <= (void*)last_element);
 
     if (element != (void*)last_element)
     {
-        memmove(element,    /* target is to overwrite the element */
-                (void*)((uintptr_t)element + vector->element_size), /* read everything from next element */
-                last_element - (uintptr_t)element);
+        memmove(element,                         /* target is to overwrite the element */
+                element + vector->element_size,  /* read everything from next element */
+                (vec_size_t)(last_element - element));  /* ptr1 - ptr2 yields signed result, but last_element is always larger than element */
     }
     --vector->count;
 }
 
 /* ------------------------------------------------------------------------- */
 void*
-vector_get_element(const struct vec_t* vector, vec_size_t index)
+vector_get_element(const struct vec_t* vector, vec_idx_t index)
 {
     assert(vector);
-
-    if (index >= vector->count)
-        return NULL;
     return vector->data + (vector->element_size * index);
 }
+
+/* ------------------------------------------------------------------------- */
+vec_idx_t
+vector_find_element(const struct vec_t* vector, void* element)
+{
+    vec_idx_t i;
+    for (i = 0; i != vector_count(vector); ++i)
+    {
+        void* current_element = vector_get_element(vector, i);
+        if (memcmp(current_element, element, vector->element_size) == 0)
+            return i;
+    }
+
+    return vector_count(vector);
+}
+
 
 /* ----------------------------------------------------------------------------
  * Static functions
  * ------------------------------------------------------------------------- */
 static enum vec_status_e
 vector_realloc(struct vec_t *vector,
-              vec_size_t insertion_index,
+              vec_idx_t insertion_index,
               vec_size_t new_capacity)
 {
     void* new_data;
@@ -369,7 +381,7 @@ vector_realloc(struct vec_t *vector,
     {
         void* old_upper_elements = vector->data + (insertion_index + 0) * vector->element_size;
         void* new_upper_elements = vector->data + (insertion_index + 1) * vector->element_size;
-        vec_size_t upper_element_count = vector->capacity - insertion_index;
+        vec_size_t upper_element_count = (vec_size_t)(vector->capacity - insertion_index);
         memmove(new_upper_elements, old_upper_elements, upper_element_count * vector->element_size);
     }
 

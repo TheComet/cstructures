@@ -9,6 +9,7 @@
 #   define FREE     cstructures_free
 #   define REALLOC  cstructures_realloc
 #else
+#   include <stdlib.h>
 #   define MALLOC   malloc
 #   define FREE     free
 #   define REALLOC  realloc
@@ -27,8 +28,8 @@ C_BEGIN
  * In release mode this does nothing. In debug mode it will initialize
  * memory reports and backtraces, if enabled.
  */
-CSTRUCTURES_PRIVATE_API int
-cstructures_memory_init(void);
+CSTRUCTURES_PUBLIC_API int
+memory_init(void);
 
 /*!
  * @brief De-initializes the memory system.
@@ -37,14 +38,14 @@ cstructures_memory_init(void);
  * report and print backtraces, if enabled.
  * @return Returns the number of memory leaks.
  */
-CSTRUCTURES_PRIVATE_API uintptr_t
-cstructures_memory_deinit(void);
+CSTRUCTURES_PUBLIC_API uintptr_t
+memory_deinit(void);
 
 /*!
  * @brief Does the same thing as a normal call to malloc(), but does some
  * additional work to monitor and track down memory leaks.
  */
-CSTRUCTURES_PRIVATE_API void*
+CSTRUCTURES_PUBLIC_API void*
 cstructures_malloc(uintptr_t size);
 
 /*!
@@ -60,6 +61,12 @@ cstructures_realloc(void* ptr, uintptr_t new_size);
  */
 CSTRUCTURES_PRIVATE_API void
 cstructures_free(void*);
+
+CSTRUCTURES_PUBLIC_API uintptr_t
+memory_get_num_allocs(void);
+
+CSTRUCTURES_PUBLIC_API uintptr_t
+memory_get_memory_usage(void);
 
 CSTRUCTURES_PRIVATE_API void
 mutated_string_and_hex_dump(void* data, uintptr_t size_in_bytes);

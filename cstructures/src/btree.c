@@ -2,7 +2,6 @@
 #include "cstructures/memory.h"
 #include <assert.h>
 #include <string.h>
-#include <stdlib.h>
 
 #define BTREE_INVALID_INDEX (btree_size_t)-1
 

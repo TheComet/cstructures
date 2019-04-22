@@ -1,6 +1,5 @@
 #include "cstructures/hashmap.h"
 #include "cstructures/memory.h"
-#include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 
