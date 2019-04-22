@@ -60,9 +60,9 @@ btree_create(struct btree_t** btree, uint32_t value_size);
 
 /*!
  * @brief Initialises an existing btree object.
- * @note This does **not** FREE existing elements. If you have elements in your
- * btree and call this, those elements will be lost and a memory leak will have
- * been created.
+ * @note This does **not** free existing elements if they aren't in-place. If
+ * you have inserted pointers to objects into your btree and call this, those
+ * elements will be lost and a memory leak will have been created.
  * @param[in] btree The btree object to initialise.
  */
 CSTRUCTURES_PUBLIC_API enum btree_status_e
@@ -221,8 +221,8 @@ btree_compact(struct btree_t* btree);
     T* v;                                                                                          \
     for(btree_##v = 0;                                                                             \
         btree_##v != btree_count(btree) &&                                                         \
-            ((k = ((struct btree_key_value_t*) (btree)->vector.data)[btree_##v].key) || 1) &&      \
-            ((v  = (T*)((struct btree_key_value_t*)(btree)->vector.data)[btree_##v].value) || 1);  \
+            ((k = ((struct btree_key_value_t*) (btree)->data)[btree_##v].key) || 1) &&      \
+            ((v  = (T*)((struct btree_key_value_t*)(btree)->data)[btree_##v].value) || 1);  \
         ++btree_##v)
 
 /*!
@@ -238,7 +238,7 @@ btree_compact(struct btree_t* btree);
  * @param[in] btree A pointer to the btree object currently being iterated.
  */
 #define BTREE_ERASE_CURRENT_ITEM_IN_FOR_LOOP(btree, v) do {                                          \
-    vector_erase_element(&(btree)->vector, ((btree_key_value_t*)(btree)->vector.data) + btree_##v); \
+    vector_erase_element(&(btree)->vector, ((btree_key_value_t*)(btree)->data) + btree_##v); \
     --btree_##v; } while(0)
 
 C_END
