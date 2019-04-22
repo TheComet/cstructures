@@ -7,7 +7,7 @@ static void BM_VectorCreation(State& state)
 {
     for (auto _ : state)
     {
-        vec_t v;
+        vector_t v;
         vector_init(&v, sizeof(int));
         DoNotOptimize(&v);
         vector_deinit(&v);
@@ -19,7 +19,7 @@ static void BM_VectorReserve(State& state)
 {
     for (auto _ : state)
     {
-        vec_t v;
+        vector_t v;
         vector_init(&v, sizeof(int));
         vector_reserve(&v, 1);
         DoNotOptimize(vector_data(&v));
@@ -33,7 +33,7 @@ static void BM_VectorReservePush(State& state)
     int someInt = 4;
     for (auto _ : state)
     {
-        vec_t v;
+        vector_t v;
         vector_init(&v, sizeof(int));
         vector_reserve(&v, 1);
         DoNotOptimize(vector_data(&v));

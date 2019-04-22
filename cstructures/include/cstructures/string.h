@@ -16,7 +16,7 @@ enum string_status_e
 
 struct string_t
 {
-    struct vec_t buf;
+    struct vector_t buf;
 };
 
 struct string_split_state_t

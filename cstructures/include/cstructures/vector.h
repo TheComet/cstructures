@@ -30,7 +30,7 @@ enum vec_status_e
     VEC_DIFFERENT_ELEMENT_SIZES = -2
 };
 
-struct vec_t
+struct vector_t
 {
     uint8_t* data;            /* pointer to the contiguous section of memory */
     vec_size_t capacity;      /* how many elements actually fit into the allocated space */
@@ -45,7 +45,7 @@ struct vec_t
  * @return Returns the newly created vector object.
  */
 CSTRUCTURES_PUBLIC_API enum vec_status_e
-vector_create(struct vec_t** vec, const vec_size_t element_size);
+vector_create(struct vector_t** vec, const vec_size_t element_size);
 
 /*!
  * @brief Initializes an existing vector object.
@@ -56,11 +56,11 @@ vector_create(struct vec_t** vec, const vec_size_t element_size);
  * want the vector to store. Typically one would pass sizeof(my_data_type).
  */
 CSTRUCTURES_PUBLIC_API enum vec_status_e
-vector_init(struct vec_t* vector,
+vector_init(struct vector_t* vector,
             const vec_size_t element_size);
 
 CSTRUCTURES_PUBLIC_API void
-vector_deinit(struct vec_t* vector);
+vector_deinit(struct vector_t* vector);
 
 /*!
  * @brief Destroys an existing vector object and frees all memory allocated by
@@ -68,7 +68,7 @@ vector_deinit(struct vec_t* vector);
  * @param[in] vector The vector to free.
  */
 CSTRUCTURES_PUBLIC_API void
-vector_free(struct vec_t* vector);
+vector_free(struct vector_t* vector);
 
 /*!
  * @brief Erases all elements in a vector.
@@ -78,17 +78,17 @@ vector_free(struct vec_t* vector);
  * @param[in] vector The vector to clear.
  */
 CSTRUCTURES_PUBLIC_API void
-vector_clear(struct vec_t* vector);
+vector_clear(struct vector_t* vector);
 
 /*!
  * @brief Erases all elements in a vector and frees their memory.
  * @param[in] vector The vector to clear.
  */
 CSTRUCTURES_PUBLIC_API void
-vector_compact(struct vec_t* vector);
+vector_compact(struct vector_t* vector);
 
 CSTRUCTURES_PUBLIC_API enum vec_status_e
-vector_reserve(struct vec_t* vector, vec_size_t size);
+vector_reserve(struct vector_t* vector, vec_size_t size);
 
 /*!
  * @brief Sets the size of the vector to exactly the size specified. If the
@@ -99,7 +99,7 @@ vector_reserve(struct vec_t* vector, vec_size_t size);
  * @return Returns VEC_OOM on failure, CSTRUCTURES_OK on success.
  */
 CSTRUCTURES_PUBLIC_API enum vec_status_e
-vector_resize(struct vec_t* vector, vec_size_t size);
+vector_resize(struct vector_t* vector, vec_size_t size);
 
 /*!
  * @brief Gets the number of elements that have been inserted into the vector.
@@ -125,7 +125,7 @@ vector_resize(struct vec_t* vector, vec_size_t size);
  * if otherwise.
  */
 CSTRUCTURES_PUBLIC_API enum vec_status_e
-vector_push(struct vec_t* vector, const void* data);
+vector_push(struct vector_t* vector, const void* data);
 
 /*!
  * @brief Allocates space for a new element at the head of the vector, but does
@@ -139,14 +139,14 @@ vector_push(struct vec_t* vector, const void* data);
  * warning and use with caution.
  */
 CSTRUCTURES_PUBLIC_API enum vec_status_e
-vector_emplace(struct vec_t* vector, void** data);
+vector_emplace(struct vector_t* vector, void** data);
 
 /*!
  * @brief Copies the contents of another vector and pushes it into the vector.
  * @return Returns CSTRUCTURES_OK if successful, VEC_OOM if otherwise.
  */
 CSTRUCTURES_PUBLIC_API enum vec_status_e
-vector_push_vector(struct vec_t* vector, const struct vec_t* source_vector);
+vector_push_vector(struct vector_t* vector, const struct vector_t* source_vector);
 
 /*!
  * @brief Removes an element from the back (end) of the vector.
@@ -159,7 +159,7 @@ vector_push_vector(struct vec_t* vector, const struct vec_t* source_vector);
  * If there are no elements to pop, NULL is returned.
  */
 CSTRUCTURES_PUBLIC_API void*
-vector_pop(struct vec_t* vector);
+vector_pop(struct vector_t* vector);
 
 /*!
  * @brief Returns the very last element of the vector.
@@ -172,7 +172,7 @@ vector_pop(struct vec_t* vector);
  * If there are no elements in the vector, NULL is returned.
  */
 CSTRUCTURES_PUBLIC_API void*
-vector_back(const struct vec_t* vector);
+vector_back(const struct vector_t* vector);
 
 /*!
  * @brief Allocates space for a new element at the specified index, but does
@@ -189,7 +189,7 @@ vector_back(const struct vec_t* vector);
  * @return A pointer to the emplaced element. See warning and use with caution.
  */
 CSTRUCTURES_PUBLIC_API enum vec_status_e
-vector_insert_emplace(struct vec_t* vector, vec_idx_t index, void** data);
+vector_insert_emplace(struct vector_t* vector, vec_idx_t index, void** data);
 
 /*!
  * @brief Inserts (copies) a new element at the specified index.
@@ -204,7 +204,7 @@ vector_insert_emplace(struct vec_t* vector, vec_idx_t index, void** data);
  * created. If this is not the case then it could cause undefined behaviour.
  */
 CSTRUCTURES_PUBLIC_API enum vec_status_e
-vector_insert(struct vec_t* vector, vec_idx_t index, void* data);
+vector_insert(struct vector_t* vector, vec_idx_t index, void* data);
 
 /*!
  * @brief Erases the specified element from the vector.
@@ -214,7 +214,7 @@ vector_insert(struct vec_t* vector, vec_idx_t index, void* data);
  * ranges from **0** to **vector_count()-1**.
  */
 CSTRUCTURES_PUBLIC_API void
-vector_erase_index(struct vec_t* vector, vec_idx_t index);
+vector_erase_index(struct vector_t* vector, vec_idx_t index);
 
 /*!
  * @brief Removes the element in the vector pointed to by **element**.
@@ -223,7 +223,7 @@ vector_erase_index(struct vec_t* vector, vec_idx_t index);
  * @note The pointer must point into the vector's data.
  */
 CSTRUCTURES_PUBLIC_API void
-vector_erase_element(struct vec_t* vector, void* element);
+vector_erase_element(struct vector_t* vector, void* element);
 
 /*!
  * @brief Gets a pointer to the specified element in the vector.
@@ -239,17 +239,17 @@ vector_erase_element(struct vec_t* vector, void* element);
  * returned.
  */
 CSTRUCTURES_PUBLIC_API void*
-vector_get_element(const struct vec_t*, vec_idx_t index);
+vector_get_element(const struct vector_t*, vec_idx_t index);
 
 CSTRUCTURES_PUBLIC_API vec_idx_t
-vector_find_element(const struct vec_t* vector, void* element);
+vector_find_element(const struct vector_t* vector, void* element);
 
 /*!
  * @brief Convenient macro for iterating a vector's elements.
  *
  * Example:
  * ```
- * vec_t* some_vector = (a vector containing elements of type "bar")
+ * vector_t* some_vector = (a vector containing elements of type "bar")
  * VECTOR_FOR_EACH(some_vector, bar, element)
  * {
  *     do_something_with(element);  ("element" is now of type "bar*")

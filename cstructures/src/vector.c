@@ -24,7 +24,7 @@
  * @note No checks are performed to make sure the target size is large enough.
  */
 static enum vec_status_e
-vector_realloc(struct vec_t *vector,
+vector_realloc(struct vector_t *vector,
               vec_idx_t insertion_index,
               vec_size_t new_count);
 
@@ -32,7 +32,7 @@ vector_realloc(struct vec_t *vector,
  * Exported functions
  * ------------------------------------------------------------------------- */
 enum vec_status_e
-vector_create(struct vec_t** vector, const vec_size_t element_size)
+vector_create(struct vector_t** vector, const vec_size_t element_size)
 {
     if (!(*vector = MALLOC(sizeof **vector)))
         return VEC_OOM;
@@ -42,7 +42,7 @@ vector_create(struct vec_t** vector, const vec_size_t element_size)
 
 /* ------------------------------------------------------------------------- */
 enum vec_status_e
-vector_init(struct vec_t* vector, const vec_size_t element_size)
+vector_init(struct vector_t* vector, const vec_size_t element_size)
 {
     assert(vector);
     memset(vector, 0, sizeof *vector);
@@ -52,7 +52,7 @@ vector_init(struct vec_t* vector, const vec_size_t element_size)
 
 /* ------------------------------------------------------------------------- */
 void
-vector_deinit(struct vec_t* vector)
+vector_deinit(struct vector_t* vector)
 {
     assert(vector);
 
@@ -61,7 +61,7 @@ vector_deinit(struct vec_t* vector)
 
 /* ------------------------------------------------------------------------- */
 void
-vector_free(struct vec_t* vector)
+vector_free(struct vector_t* vector)
 {
     assert(vector);
     vector_deinit(vector);
@@ -70,7 +70,7 @@ vector_free(struct vec_t* vector)
 
 /* ------------------------------------------------------------------------- */
 void
-vector_clear(struct vec_t* vector)
+vector_clear(struct vector_t* vector)
 {
     assert(vector);
     /*
@@ -82,7 +82,7 @@ vector_clear(struct vec_t* vector)
 
 /* ------------------------------------------------------------------------- */
 void
-vector_compact(struct vec_t* vector)
+vector_compact(struct vector_t* vector)
 {
     assert(vector);
 
@@ -103,7 +103,7 @@ vector_compact(struct vec_t* vector)
 
 /* ------------------------------------------------------------------------- */
 enum vec_status_e
-vector_reserve(struct vec_t* vector, vec_size_t size)
+vector_reserve(struct vector_t* vector, vec_size_t size)
 {
     assert(vector);
 
@@ -119,7 +119,7 @@ vector_reserve(struct vec_t* vector, vec_size_t size)
 
 /* ------------------------------------------------------------------------- */
 enum vec_status_e
-vector_resize(struct vec_t* vector, vec_size_t size)
+vector_resize(struct vector_t* vector, vec_size_t size)
 {
     enum vec_status_e result;
     assert(vector);
@@ -134,7 +134,7 @@ vector_resize(struct vec_t* vector, vec_size_t size)
 
 /* ------------------------------------------------------------------------- */
 enum vec_status_e
-vector_emplace(struct vec_t* vector, void** emplaced)
+vector_emplace(struct vector_t* vector, void** emplaced)
 {
     enum vec_status_e status;
     assert(vector);
@@ -153,7 +153,7 @@ vector_emplace(struct vec_t* vector, void** emplaced)
 
 /* ------------------------------------------------------------------------- */
 enum vec_status_e
-vector_push(struct vec_t* vector, const void* data)
+vector_push(struct vector_t* vector, const void* data)
 {
     void* emplaced;
     enum vec_status_e status;
@@ -169,7 +169,7 @@ vector_push(struct vec_t* vector, const void* data)
 
 /* ------------------------------------------------------------------------- */
 enum vec_status_e
-vector_push_vector(struct vec_t* vector, const struct vec_t* source_vector)
+vector_push_vector(struct vector_t* vector, const struct vector_t* source_vector)
 {
     enum vec_status_e result;
 
@@ -196,7 +196,7 @@ vector_push_vector(struct vec_t* vector, const struct vec_t* source_vector)
 
 /* ------------------------------------------------------------------------- */
 void*
-vector_pop(struct vec_t* vector)
+vector_pop(struct vector_t* vector)
 {
     assert(vector);
 
@@ -209,7 +209,7 @@ vector_pop(struct vec_t* vector)
 
 /* ------------------------------------------------------------------------- */
 void*
-vector_back(const struct vec_t* vector)
+vector_back(const struct vector_t* vector)
 {
     assert(vector);
 
@@ -221,7 +221,7 @@ vector_back(const struct vec_t* vector)
 
 /* ------------------------------------------------------------------------- */
 enum vec_status_e
-vector_insert_emplace(struct vec_t* vector, vec_idx_t index, void** emplaced)
+vector_insert_emplace(struct vector_t* vector, vec_idx_t index, void** emplaced)
 {
     vec_idx_t offset;
     enum vec_status_e status;
@@ -264,7 +264,7 @@ vector_insert_emplace(struct vec_t* vector, vec_idx_t index, void** emplaced)
 
 /* ------------------------------------------------------------------------- */
 enum vec_status_e
-vector_insert(struct vec_t* vector, vec_idx_t index, void* data)
+vector_insert(struct vector_t* vector, vec_idx_t index, void* data)
 {
     void* emplaced;
     enum vec_status_e status;
@@ -280,7 +280,7 @@ vector_insert(struct vec_t* vector, vec_idx_t index, void* data)
 
 /* ------------------------------------------------------------------------- */
 void
-vector_erase_index(struct vec_t* vector, vec_idx_t index)
+vector_erase_index(struct vector_t* vector, vec_idx_t index)
 {
     assert(vector);
 
@@ -304,7 +304,7 @@ vector_erase_index(struct vec_t* vector, vec_idx_t index)
 
 /* ------------------------------------------------------------------------- */
 void
-vector_erase_element(struct vec_t* vector, void* element)
+vector_erase_element(struct vector_t* vector, void* element)
 {
     void* last_element;
 
@@ -325,7 +325,7 @@ vector_erase_element(struct vec_t* vector, void* element)
 
 /* ------------------------------------------------------------------------- */
 void*
-vector_get_element(const struct vec_t* vector, vec_idx_t index)
+vector_get_element(const struct vector_t* vector, vec_idx_t index)
 {
     assert(vector);
     return vector->data + (vector->element_size * index);
@@ -333,7 +333,7 @@ vector_get_element(const struct vec_t* vector, vec_idx_t index)
 
 /* ------------------------------------------------------------------------- */
 vec_idx_t
-vector_find_element(const struct vec_t* vector, void* element)
+vector_find_element(const struct vector_t* vector, void* element)
 {
     vec_idx_t i;
     for (i = 0; i != vector_count(vector); ++i)
@@ -351,7 +351,7 @@ vector_find_element(const struct vec_t* vector, void* element)
  * Static functions
  * ------------------------------------------------------------------------- */
 static enum vec_status_e
-vector_realloc(struct vec_t *vector,
+vector_realloc(struct vector_t *vector,
               vec_idx_t insertion_index,
               vec_size_t new_capacity)
 {
