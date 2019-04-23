@@ -64,11 +64,12 @@ target_compile_options (cstructures
 
 if (CSTRUCTURES_TESTS)
     add_executable (cstructures_tests
-        "tests/test_btree.cpp"
-        "tests/test_hashmap.cpp"
-        "tests/test_vector.cpp"
-        "tests/env_library_init.cpp"
-        "tests/main.cpp")
+        "src/tests/test_btree.cpp"
+        "src/tests/test_btree_as_set.cpp"
+        "src/tests/test_hashmap.cpp"
+        "src/tests/test_vector.cpp"
+        "src/tests/env_library_init.cpp"
+        "src/tests/main.cpp")
     target_link_libraries (cstructures_tests PUBLIC cstructures)
     target_link_libraries (cstructures_tests PUBLIC gmock)
 endif ()
@@ -79,11 +80,11 @@ endif ()
 
 if (CSTRUCTURES_BENCHMARKS)
     add_executable (cstructures_benchmarks
-        "benchmarks/bench_hashmap.cpp"
-        "benchmarks/bench_std_unordered_map.cpp"
-        "benchmarks/bench_vector.cpp"
-        "benchmarks/bench_std_vector.cpp"
-        "benchmarks/main.cpp")
+        "src/benchmarks/bench_hashmap.cpp"
+        "src/benchmarks/bench_std_unordered_map.cpp"
+        "src/benchmarks/bench_vector.cpp"
+        "src/benchmarks/bench_std_vector.cpp"
+        "src/benchmarks/main.cpp")
     target_link_libraries (cstructures_benchmarks PUBLIC cstructures)
     target_link_libraries (cstructures_benchmarks PUBLIC benchmark)
     target_include_directories (cstructures_benchmarks
