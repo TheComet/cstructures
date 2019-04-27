@@ -230,7 +230,7 @@ btree_set_existing(struct btree_t* btree, btree_key_t key, const void* value)
 
 /* ------------------------------------------------------------------------- */
 enum btree_status_e
-btree_set_or_insert(struct btree_t* btree, btree_key_t key, const void* value)
+btree_insert_or_get(struct btree_t* btree, btree_key_t key, const void* value, void** inserted_value)
 {
     btree_key_t* lower_bound;
     btree_size_t insertion_index;
@@ -239,14 +239,16 @@ btree_set_or_insert(struct btree_t* btree, btree_key_t key, const void* value)
     assert(btree);
     assert(btree->value_size > 0);
     assert(value);
+    assert(inserted_value);
 
     /* lookup location in btree to insert */
     lower_bound = btree_find_lower_bound(btree, key);
     insertion_index = BTREE_KEY_TO_IDX(btree, lower_bound);
     if (lower_bound < BTREE_KEY_END(btree) && *lower_bound == key)
     {
-        memcpy(BTREE_VALUE(btree, insertion_index), value, btree->value_size);
-        return BTREE_OK;
+        /*memcpy(BTREE_VALUE(btree, insertion_index), *value, btree->value_size);*/
+        *inserted_value = BTREE_VALUE(btree, insertion_index);
+        return BTREE_EXISTS;
     }
 
     /* May need to realloc */
@@ -256,9 +258,10 @@ btree_set_or_insert(struct btree_t* btree, btree_key_t key, const void* value)
 
     memcpy(BTREE_KEY(btree, insertion_index), &key, sizeof(btree_key_t));
     memcpy(BTREE_VALUE(btree, insertion_index), value, btree->value_size);
+    *inserted_value = BTREE_VALUE(btree, insertion_index);
     btree->count++;
 
-    return BTREE_OK;
+    return BTREE_NOT_FOUND;
 }
 
 /* ------------------------------------------------------------------------- */

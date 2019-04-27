@@ -25,9 +25,9 @@ typedef intptr_t vec_idx_t;
 
 enum vec_status_e
 {
-    VEC_OK  = 0,
-    VEC_OOM = -1,
-    VEC_DIFFERENT_ELEMENT_SIZES = -2
+    VECTOR_OK  = 0,
+    VECTOR_OOM = -1,
+    VECTOR_DIFFERENT_ELEMENT_SIZES = -2
 };
 
 struct vector_t
@@ -87,6 +87,9 @@ vector_clear(struct vector_t* vector);
 CSTRUCTURES_PUBLIC_API void
 vector_compact(struct vector_t* vector);
 
+CSTRUCTURES_PUBLIC_API void
+vector_clear_compact(struct vector_t* vector);
+
 CSTRUCTURES_PUBLIC_API enum vec_status_e
 vector_reserve(struct vector_t* vector, vec_size_t size);
 
@@ -96,7 +99,7 @@ vector_reserve(struct vector_t* vector, vec_size_t size);
  * then the capacity will remain the same and the size will adjusted.
  * @param[in] vector The vector to resize.
  * @param[in] size The new size of the vector.
- * @return Returns VEC_OOM on failure, CSTRUCTURES_OK on success.
+ * @return Returns VECTOR_OOM on failure, CSTRUCTURES_OK on success.
  */
 CSTRUCTURES_PUBLIC_API enum vec_status_e
 vector_resize(struct vector_t* vector, vec_size_t size);
@@ -121,7 +124,7 @@ vector_resize(struct vector_t* vector, vec_size_t size);
  * @param[in] data The data to copy into the vector. It is assumed that
  * sizeof(data) is equal to what was specified when the vector was first
  * created. If this is not the case then it could cause undefined behaviour.
- * @return Returns CSTRUCTURES_OK if the data was successfully pushed, VEC_OOM
+ * @return Returns CSTRUCTURES_OK if the data was successfully pushed, VECTOR_OOM
  * if otherwise.
  */
 CSTRUCTURES_PUBLIC_API enum vec_status_e
@@ -143,7 +146,7 @@ vector_emplace(struct vector_t* vector, void** data);
 
 /*!
  * @brief Copies the contents of another vector and pushes it into the vector.
- * @return Returns CSTRUCTURES_OK if successful, VEC_OOM if otherwise.
+ * @return Returns CSTRUCTURES_OK if successful, VECTOR_OOM if otherwise.
  */
 CSTRUCTURES_PUBLIC_API enum vec_status_e
 vector_push_vector(struct vector_t* vector, const struct vector_t* source_vector);
@@ -265,7 +268,7 @@ vector_find_element(const struct vector_t* vector, void* element);
     uint8_t* internal_##var_end_of_vector = (vector)->data + (vector)->count * (vector)->element_size; \
     for(var = (var_type*)(vector)->data;                                     \
         (uint8_t*)var != internal_##var_end_of_vector;                       \
-        var = (var_type*)(((uint8_t*)var) + (vector)->element_size))
+        var = (var_type*)(((uint8_t*)var) + (vector)->element_size)) {
 
 
 #define VECTOR_FOR_EACH_R(vector, var_type, var) {                           \
@@ -273,7 +276,7 @@ vector_find_element(const struct vector_t* vector, void* element);
     uint8_t* internal_##var_start_of_vector = (vector)->data - (vector)->element_size; \
     for(var = (var_type*)((vector)->data + (vector)->count * (vector)->element_size - (vector)->element_size); \
         (uint8_t*)var != internal_##var_start_of_vector;                     \
-        var = (var_type*)(((uint8_t*)var) - (vector)->element_size))
+        var = (var_type*)(((uint8_t*)var) - (vector)->element_size)) {
 
 /*!
  * @brief Convenient macro for iterating a range of a vector's elements.
@@ -292,12 +295,12 @@ vector_find_element(const struct vector_t* vector, void* element);
     uint8_t* internal_##var_end_of_vector = (vector)->data + end_index * (vector)->element_size; \
     for(var = (var_type*)((vector)->data + begin_index * (vector)->element_size); \
         (uint8_t*)var != internal_##var_end_of_vector;                         \
-        var = (var_type*)(((uint8_t*)var) + (vector)->element_size))
+        var = (var_type*)(((uint8_t*)var) + (vector)->element_size)) {
 
 /*!
  * @brief Closes a for each scope previously opened by VECTOR_FOR_EACH.
  */
-#define VECTOR_END_EACH }
+#define VECTOR_END_EACH }}
 
 /*!
  * @brief Convenient macro for erasing an element while iterating a vector.

@@ -27,7 +27,7 @@ string_create(struct string_t** str)
 enum string_status_e
 string_init(struct string_t* str)
 {
-    if (vector_init(&str->buf, sizeof(char)) != VEC_OK)
+    if (vector_init(&str->buf, sizeof(char)) != VECTOR_OK)
         return STR_OOM;
     return STR_OK;
 }
@@ -71,12 +71,12 @@ string_getline(struct string_t* str, FILE* fp)
                 continue;
 
             char nullterm = '\0';
-            if (vector_push(&str->buf, &nullterm) != VEC_OK)
+            if (vector_push(&str->buf, &nullterm) != VECTOR_OK)
                 return -1;
             return 1;
         }
 
-        if (vector_push(&str->buf, &c) != VEC_OK)
+        if (vector_push(&str->buf, &c) != VECTOR_OK)
             return -1;
     }
 

@@ -147,7 +147,7 @@ btree_insert_new(struct btree_t* btree, btree_key_t key, const void* value);
  * @param[in] key The unique key associated with the value you want to change.
  * @param[in] value The new value to set.
  * @return Returns BTREE_OK if the value was found and updated. Returns
- * BTREE_NOT_FOUND if the key was not found.
+ * BTREE_NOT_FOUND if the key was not found. Nothing happens in this case.
  */
 CSTRUCTURES_PUBLIC_API enum btree_status_e
 btree_set_existing(struct btree_t* btree, btree_key_t key, const void* value);
@@ -159,12 +159,16 @@ btree_set_existing(struct btree_t* btree, btree_key_t key, const void* value);
  * @param[in] key The unique key associated with the value you want to set.
  * @param[in] value A pointer to the data to insert into the tree. The data
  * must be at least btree_value_size() in bytes. This is set during btree
- * creation.
- * @return Returns BTREE_OK on success. Returns BTREE_OOM if not enough memory
- * was available in the case of a reallocation.
+ * creation. If the item doesn't yet exist, the value is copied into the btree.
+ * If the item does already exist, then this value is ignored.
+ * @param[out] inserted_value Will be updated to point to either the newly
+ * inserted value, or point to the existing value.
+ * @return Returns BTREE_EXISTS if the value already existed. Returns
+ * BTREE_NOT_FOUND if a new entry was made. Return BTREE_OOM if not enough
+ * memory was available in the case of a reallocation.
  */
 CSTRUCTURES_PUBLIC_API enum btree_status_e
-btree_set_or_insert(struct btree_t* btree, btree_key_t key, const void* value);
+btree_insert_or_get(struct btree_t* btree, btree_key_t key, const void* value, void** inserted_value);
 
 /*!
  * @brief Looks for the specified key in the btree and returns a pointer to the
@@ -323,10 +327,10 @@ btree_compact(struct btree_t* btree);
  * item. Will be of type T*.
  */
 #define BTREE_FOR_EACH(btree, T, k, v) {                                      \
-    assert(btree_value_size(btree) > 0);                                      \
     btree_size_t idx_##k;                                                     \
     btree_key_t k;                                                            \
     T* v;                                                                     \
+    assert(btree_value_size(btree) > 0);                                      \
     for(idx_##k = 0;                                                          \
         idx_##k != btree_count(btree) && (                                    \
             ((k = *BTREE_KEY(btree, idx_##k)) || 1) &&                        \

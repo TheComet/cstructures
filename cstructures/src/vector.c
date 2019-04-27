@@ -35,9 +35,9 @@ enum vec_status_e
 vector_create(struct vector_t** vector, const vec_size_t element_size)
 {
     if (!(*vector = MALLOC(sizeof **vector)))
-        return VEC_OOM;
+        return VECTOR_OOM;
     vector_init(*vector, element_size);
-    return VEC_OK;
+    return VECTOR_OK;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -47,7 +47,7 @@ vector_init(struct vector_t* vector, const vec_size_t element_size)
     assert(vector);
     memset(vector, 0, sizeof *vector);
     vector->element_size = element_size;
-    return VEC_OK;
+    return VECTOR_OK;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -102,6 +102,18 @@ vector_compact(struct vector_t* vector)
 }
 
 /* ------------------------------------------------------------------------- */
+void
+vector_clear_compact(struct vector_t* vector)
+{
+    assert(vector);
+
+    XFREE(vector->data);
+    vector->count = 0;
+    vector->capacity = 0;
+    vector->data = NULL;
+}
+
+/* ------------------------------------------------------------------------- */
 enum vec_status_e
 vector_reserve(struct vector_t* vector, vec_size_t size)
 {
@@ -110,11 +122,11 @@ vector_reserve(struct vector_t* vector, vec_size_t size)
     if (vector->capacity < size)
     {
         enum vec_status_e result;
-        if ((result = vector_realloc(vector, VEC_INVALID_INDEX, size)) != VEC_OK)
+        if ((result = vector_realloc(vector, VEC_INVALID_INDEX, size)) != VECTOR_OK)
             return result;
     }
 
-    return VEC_OK;
+    return VECTOR_OK;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -124,12 +136,12 @@ vector_resize(struct vector_t* vector, vec_size_t size)
     enum vec_status_e result;
     assert(vector);
 
-    if ((result = vector_reserve(vector, size)) != VEC_OK)
+    if ((result = vector_reserve(vector, size)) != VECTOR_OK)
         return result;
 
     vector->count = size;
 
-    return VEC_OK;
+    return VECTOR_OK;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -142,13 +154,13 @@ vector_emplace(struct vector_t* vector, void** emplaced)
     if (VECTOR_NEEDS_REALLOC(vector))
         if ((status = vector_realloc(vector,
                                      VEC_INVALID_INDEX,
-                                     vector_count(vector) * CSTRUCTURES_VEC_EXPAND_FACTOR)) != VEC_OK)
+                                     vector_count(vector) * CSTRUCTURES_VEC_EXPAND_FACTOR)) != VECTOR_OK)
             return status;
 
     *emplaced = vector->data + (vector->element_size * vector->count);
     ++(vector->count);
 
-    return VEC_OK;
+    return VECTOR_OK;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -161,10 +173,10 @@ vector_push(struct vector_t* vector, const void* data)
     assert(vector);
     assert(data);
 
-    if ((status = vector_emplace(vector, &emplaced)) != VEC_OK)
+    if ((status = vector_emplace(vector, &emplaced)) != VECTOR_OK)
         return status;
     memcpy(emplaced, data, vector->element_size);
-    return VEC_OK;
+    return VECTOR_OK;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -178,11 +190,11 @@ vector_push_vector(struct vector_t* vector, const struct vector_t* source_vector
 
     /* make sure element sizes are equal */
     if (vector->element_size != source_vector->element_size)
-        return VEC_DIFFERENT_ELEMENT_SIZES;
+        return VECTOR_DIFFERENT_ELEMENT_SIZES;
 
     /* make sure there's enough space in the target vector */
     if (vector->count + source_vector->count > vector->capacity)
-        if ((result = vector_realloc(vector, VEC_INVALID_INDEX, vector->count + source_vector->count)) != VEC_OK)
+        if ((result = vector_realloc(vector, VEC_INVALID_INDEX, vector->count + source_vector->count)) != VECTOR_OK)
             return result;
 
     /* copy data */
@@ -191,7 +203,7 @@ vector_push_vector(struct vector_t* vector, const struct vector_t* source_vector
            source_vector->count * vector->element_size);
     vector->count += source_vector->count;
 
-    return VEC_OK;
+    return VECTOR_OK;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -240,7 +252,7 @@ vector_insert_emplace(struct vector_t* vector, vec_idx_t index, void** emplaced)
     {
         if ((status = vector_realloc(vector,
                                      index,
-                                     vector_count(vector) * CSTRUCTURES_VEC_EXPAND_FACTOR)) != VEC_OK)
+                                     vector_count(vector) * CSTRUCTURES_VEC_EXPAND_FACTOR)) != VECTOR_OK)
             return status;
     }
     else
@@ -259,7 +271,7 @@ vector_insert_emplace(struct vector_t* vector, vec_idx_t index, void** emplaced)
     /* return pointer to memory of new element */
     *emplaced = (void*)(vector->data + index * vector->element_size);
 
-    return VEC_OK;
+    return VECTOR_OK;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -272,10 +284,10 @@ vector_insert(struct vector_t* vector, vec_idx_t index, void* data)
     assert(vector);
     assert(data);
 
-    if ((status = vector_insert_emplace(vector, index, &emplaced)) != VEC_OK)
+    if ((status = vector_insert_emplace(vector, index, &emplaced)) != VECTOR_OK)
         return status;
     memcpy(emplaced, data, vector->element_size);
-    return VEC_OK;
+    return VECTOR_OK;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -366,14 +378,14 @@ vector_realloc(struct vector_t *vector,
         new_capacity = (new_capacity == 0 ? CSTRUCTURES_VEC_MIN_CAPACITY : new_capacity);
         vector->data = MALLOC(new_capacity * vector->element_size);
         if (!vector->data)
-            return VEC_OOM;
+            return VECTOR_OOM;
         vector->capacity = new_capacity;
-        return VEC_OK;
+        return VECTOR_OK;
     }
 
     /* prepare for reallocating data */
     if ((new_data = REALLOC(vector->data, new_capacity * vector->element_size)) == NULL)
-        return VEC_OOM;
+        return VECTOR_OOM;
     vector->data = new_data;
 
     /* if (no insertion index is required, copy all data to new memory */
@@ -387,5 +399,5 @@ vector_realloc(struct vector_t *vector,
 
     vector->capacity = new_capacity;
 
-    return VEC_OK;
+    return VECTOR_OK;
 }
