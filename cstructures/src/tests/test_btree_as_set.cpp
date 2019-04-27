@@ -377,30 +377,3 @@ TEST(NAME, iterate_5_random_items)
 
     btree_deinit(&btree);
 }
-
-/*
-TEST(NAME, erase_in_for_loop)
-{
-    struct btree_t* btree; btree_create(&btree);
-
-    int a=79579, b=235, c=347, d=124, e=457;
-    btree_insert(btree, 243, NULL);
-    btree_insert(btree, 256, NULL);
-    btree_insert(btree, 456, NULL);
-    btree_insert(btree, 468, NULL);
-    btree_insert(btree, 969, NULL);
-
-    BTREE_FOR_EACH(btree, int, key, value)
-        if(key == 256u)
-            BTREE_ERASE_CURRENT_ITEM_IN_FOR_LOOP(btree, value);
-    BTREE_END_EACH
-
-    EXPECT_THAT((int*)btree_find(btree, 243), Pointee(a));
-    EXPECT_THAT((int*)btree_find(btree, 256), IsNull());
-    EXPECT_THAT((int*)btree_find(btree, 456), Pointee(c));
-    EXPECT_THAT((int*)btree_find(btree, 468), Pointee(d));
-    EXPECT_THAT((int*)btree_find(btree, 969), Pointee(e));
-
-    btree_free(btree);
-}
-*/

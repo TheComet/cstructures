@@ -132,6 +132,19 @@ btree_free(struct btree_t* btree)
 }
 
 /* ------------------------------------------------------------------------- */
+enum btree_status_e btree_reserve(struct btree_t* btree, btree_size_t size)
+{
+    if (btree->capacity < size)
+    {
+        enum btree_status_e status;
+        if ((status = btree_realloc(btree, BTREE_INVALID_KEY, size)) != BTREE_OK)
+            return status;
+    }
+
+    return BTREE_OK;
+}
+
+/* ------------------------------------------------------------------------- */
 /* algorithm taken from GNU GCC stdlibc++'s lower_bound function, line 2121 in stl_algo.h */
 /* https://gcc.gnu.org/onlinedocs/libstdc++/libstdc++-html-USERS-4.3/a02014.html */
 /*
@@ -178,9 +191,15 @@ btree_insert_new(struct btree_t* btree, btree_key_t key, const void* value)
 {
     btree_key_t* lower_bound;
     btree_size_t insertion_index;
+    btree_size_t entries_to_move;
     enum btree_status_e status;
 
     assert(btree);
+
+    /* May need to realloc */
+    if (BTREE_NEEDS_REALLOC(btree))
+        if ((status = btree_realloc(btree, BTREE_INVALID_KEY, btree->capacity * CSTRUCTURES_BTREE_EXPAND_FACTOR)) != BTREE_OK)
+            return status;
 
     /* lookup location in btree to insert */
     lower_bound = btree_find_lower_bound(btree, key);
@@ -188,19 +207,12 @@ btree_insert_new(struct btree_t* btree, btree_key_t key, const void* value)
         return BTREE_EXISTS;
     insertion_index = BTREE_KEY_TO_IDX(btree, lower_bound);
 
-    /* May need to realloc */
-    if (BTREE_NEEDS_REALLOC(btree))
-    {
-        if ((status = btree_realloc(btree, BTREE_INVALID_KEY, btree->capacity * CSTRUCTURES_BTREE_EXPAND_FACTOR)) != BTREE_OK)
-            return status;
-    }
-    else
-    {
-        btree_size_t entries_to_move = btree_count(btree) - insertion_index;
-        memmove(lower_bound + 1, lower_bound, entries_to_move * sizeof(btree_key_t));
-        memmove(BTREE_VALUE(btree, insertion_index + 1), BTREE_VALUE(btree, insertion_index), entries_to_move * btree->value_size);
-    }
+    /* Move entries out of the way to make space for new entry */
+    entries_to_move = btree_count(btree) - insertion_index;
+    memmove(lower_bound + 1, lower_bound, entries_to_move * sizeof(btree_key_t));
+    memmove(BTREE_VALUE(btree, insertion_index + 1), BTREE_VALUE(btree, insertion_index), entries_to_move * btree->value_size);
 
+    /* Copy key/value into storage */
     memcpy(BTREE_KEY(btree, insertion_index), &key, sizeof(btree_key_t));
     if (btree->value_size)
         memcpy(BTREE_VALUE(btree, insertion_index), value, btree->value_size);
@@ -234,12 +246,18 @@ btree_insert_or_get(struct btree_t* btree, btree_key_t key, const void* value, v
 {
     btree_key_t* lower_bound;
     btree_size_t insertion_index;
+    btree_size_t entries_to_move;
     enum btree_status_e status;
 
     assert(btree);
     assert(btree->value_size > 0);
     assert(value);
     assert(inserted_value);
+
+    /* May need to realloc */
+    if (BTREE_NEEDS_REALLOC(btree))
+        if ((status = btree_realloc(btree, BTREE_INVALID_KEY, btree->capacity * CSTRUCTURES_BTREE_EXPAND_FACTOR)) != BTREE_OK)
+            return status;
 
     /* lookup location in btree to insert */
     lower_bound = btree_find_lower_bound(btree, key);
@@ -251,10 +269,10 @@ btree_insert_or_get(struct btree_t* btree, btree_key_t key, const void* value, v
         return BTREE_EXISTS;
     }
 
-    /* May need to realloc */
-    if (BTREE_NEEDS_REALLOC(btree))
-        if ((status = btree_realloc(btree, BTREE_INVALID_KEY, btree->capacity * CSTRUCTURES_BTREE_EXPAND_FACTOR)) != BTREE_OK)
-            return status;
+    /* Move entries out of the way to make space for new entry */
+    entries_to_move = btree_count(btree) - insertion_index;
+    memmove(lower_bound + 1, lower_bound, entries_to_move * sizeof(btree_key_t));
+    memmove(BTREE_VALUE(btree, insertion_index + 1), BTREE_VALUE(btree, insertion_index), entries_to_move * btree->value_size);
 
     memcpy(BTREE_KEY(btree, insertion_index), &key, sizeof(btree_key_t));
     memcpy(BTREE_VALUE(btree, insertion_index), value, btree->value_size);

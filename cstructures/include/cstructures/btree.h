@@ -120,6 +120,12 @@ CSTRUCTURES_PUBLIC_API void
 btree_free(struct btree_t* btree);
 
 /*!
+ *
+ */
+CSTRUCTURES_PUBLIC_API enum btree_status_e
+btree_reserve(struct btree_t* btree, btree_size_t size);
+
+/*!
  * @brief Inserts an item into the btree using a key.
  *
  * @note Complexity is O(log2(n)) to find the insertion point.

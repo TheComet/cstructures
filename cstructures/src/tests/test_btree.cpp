@@ -102,6 +102,34 @@ TEST(NAME, insertion_random)
     btree_deinit(&btree);
 }
 
+TEST(NAME, insert_new_with_realloc_shifts_data_correctly)
+{
+    struct btree_t btree;
+    btree_init(&btree, sizeof(int));
+
+    btree_size_t midway = CSTRUCTURES_BTREE_MIN_CAPACITY / 2;
+
+    int value = 0x55;
+    btree_reserve(&btree, CSTRUCTURES_BTREE_MIN_CAPACITY);
+    for (int i = 0; i != CSTRUCTURES_BTREE_MIN_CAPACITY; ++i)
+    {
+        if (i < midway)
+            ASSERT_THAT(btree_insert_new(&btree, i, &value), Eq(BTREE_OK));
+        else
+            ASSERT_THAT(btree_insert_new(&btree, i+1, &value), Eq(BTREE_OK));
+    }
+
+    // Make sure we didn't cause a realloc yet
+    ASSERT_THAT(btree_capacity(&btree), Eq(CSTRUCTURES_BTREE_MIN_CAPACITY));
+    ASSERT_THAT(btree_insert_new(&btree, midway, &value), Eq(BTREE_OK));
+    // Now it should have reallocated
+    ASSERT_THAT(btree_capacity(&btree), Gt(CSTRUCTURES_BTREE_MIN_CAPACITY));
+
+    // Check all values are there
+    for (int i = 0; i != CSTRUCTURES_BTREE_MIN_CAPACITY+1; ++i)
+        EXPECT_THAT(btree_find(&btree, i), NotNull()) << "i: " << i << ", midway: " << midway;
+}
+
 TEST(NAME, clear_keeps_underlying_buffer)
 {
     struct btree_t btree;
@@ -209,18 +237,64 @@ TEST(NAME, set_existing_key_works_on_keys_that_exist)
     btree_deinit(&btree);
 }
 
-TEST(NAME, set_or_insert_works)
+TEST(NAME, insert_or_get_works)
 {
     struct btree_t btree;
     btree_init(&btree, sizeof(int));
 
-    int a=53, b=77;
-    EXPECT_THAT(btree_set_or_insert(&btree, 0, &a), Eq(BTREE_OK));
+    int a=53, b=77, *get;
+    EXPECT_THAT(btree_insert_or_get(&btree, 0, &a, (void**)&get), Eq(BTREE_NOT_FOUND));
+    EXPECT_THAT(get, AllOf(NotNull(), Pointee(Eq(53))));
     EXPECT_THAT(static_cast<int*>(btree_find(&btree, 0)), AllOf(NotNull(), Pointee(Eq(53))));
-    EXPECT_THAT(btree_set_or_insert(&btree, 0, &b), Eq(BTREE_OK));
-    EXPECT_THAT(static_cast<int*>(btree_find(&btree, 0)), AllOf(NotNull(), Pointee(Eq(77))));
+    EXPECT_THAT(btree_count(&btree), Eq(1));
+
+    EXPECT_THAT(btree_insert_or_get(&btree, 1, &b, (void**)&get), Eq(BTREE_NOT_FOUND));
+    EXPECT_THAT(get, AllOf(NotNull(), Pointee(Eq(77))));
+    EXPECT_THAT(static_cast<int*>(btree_find(&btree, 1)), AllOf(NotNull(), Pointee(Eq(77))));
+    EXPECT_THAT(btree_count(&btree), Eq(2));
+
+    EXPECT_THAT(btree_insert_or_get(&btree, 0, &a, (void**)&get), Eq(BTREE_EXISTS));
+    EXPECT_THAT(get, AllOf(NotNull(), Pointee(Eq(53))));
+    EXPECT_THAT(btree_count(&btree), Eq(2));
+
+    EXPECT_THAT(btree_insert_or_get(&btree, 1, &b, (void**)&get), Eq(BTREE_EXISTS));
+    EXPECT_THAT(get, AllOf(NotNull(), Pointee(Eq(77))));
+    EXPECT_THAT(btree_count(&btree), Eq(2));
 
     btree_deinit(&btree);
+}
+
+TEST(NAME, insert_or_get_with_realloc_shifts_data_correctly)
+{
+    struct btree_t btree;
+    btree_init(&btree, sizeof(int));
+
+    btree_size_t midway = CSTRUCTURES_BTREE_MIN_CAPACITY / 2;
+
+    int value = 0x55, *get;
+    btree_reserve(&btree, CSTRUCTURES_BTREE_MIN_CAPACITY);
+    for (int i = 0; i != CSTRUCTURES_BTREE_MIN_CAPACITY; ++i)
+    {
+        if (i < midway)
+            ASSERT_THAT(btree_insert_or_get(&btree, i, &value, (void**)&get), Eq(BTREE_NOT_FOUND));
+        else
+            ASSERT_THAT(btree_insert_or_get(&btree, i+1, &value, (void**)&get), Eq(BTREE_NOT_FOUND));
+    }
+
+    // Make sure we didn't cause a realloc yet
+    get = nullptr;
+    ASSERT_THAT(btree_capacity(&btree), Eq(CSTRUCTURES_BTREE_MIN_CAPACITY));
+    ASSERT_THAT(btree_insert_or_get(&btree, midway, &value, (void**)&get), Eq(BTREE_NOT_FOUND));
+    // Now it should have reallocated
+    ASSERT_THAT(btree_capacity(&btree), Gt(CSTRUCTURES_BTREE_MIN_CAPACITY));
+
+    // Check all values are there
+    for (int i = 0; i != CSTRUCTURES_BTREE_MIN_CAPACITY+1; ++i)
+    {
+        get = nullptr;
+        EXPECT_THAT(btree_insert_or_get(&btree, i, &value, (void**)&get), Eq(BTREE_EXISTS)) << "i: " << i << ", midway: " << midway;
+        EXPECT_THAT(get, AllOf(NotNull(), Pointee(Eq(0x55))));
+    }
 }
 
 TEST(NAME, find_on_empty_btree_doesnt_crash)
