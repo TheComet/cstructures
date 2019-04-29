@@ -231,8 +231,8 @@ vector_back(const struct vector_t* vector)
 }
 
 /* ------------------------------------------------------------------------- */
-enum vec_status_e
-vector_insert_emplace(struct vector_t* vector, vec_idx_t index, void** emplaced)
+void*
+vector_insert_emplace(struct vector_t* vector, vec_idx_t index)
 {
     vec_idx_t offset;
     enum vec_status_e status;
@@ -252,7 +252,7 @@ vector_insert_emplace(struct vector_t* vector, vec_idx_t index, void** emplaced)
         if ((status = vector_realloc(vector,
                                      index,
                                      vector_count(vector) * CSTRUCTURES_VEC_EXPAND_FACTOR)) != VECTOR_OK)
-            return status;
+            return NULL;
     }
     else
     {
@@ -268,9 +268,7 @@ vector_insert_emplace(struct vector_t* vector, vec_idx_t index, void** emplaced)
     ++vector->count;
 
     /* return pointer to memory of new element */
-    *emplaced = (void*)(vector->data + index * vector->element_size);
-
-    return VECTOR_OK;
+    return (void*)(vector->data + index * vector->element_size);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -278,13 +276,12 @@ enum vec_status_e
 vector_insert(struct vector_t* vector, vec_idx_t index, void* data)
 {
     void* emplaced;
-    enum vec_status_e status;
 
     assert(vector);
     assert(data);
 
-    if ((status = vector_insert_emplace(vector, index, &emplaced)) != VECTOR_OK)
-        return status;
+    if ((emplaced = vector_insert_emplace(vector, index)) == NULL)
+        return VECTOR_OOM;
     memcpy(emplaced, data, vector->element_size);
     return VECTOR_OK;
 }
@@ -339,7 +336,8 @@ void*
 vector_get_element(const struct vector_t* vector, vec_idx_t index)
 {
     assert(vector);
-    return vector->data + (vector->element_size * index);
+    assert(index < vector->count);
+    return vector->data + index * vector->element_size;
 }
 
 /* ------------------------------------------------------------------------- */

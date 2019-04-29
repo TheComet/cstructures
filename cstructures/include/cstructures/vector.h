@@ -191,8 +191,8 @@ vector_back(const struct vector_t* vector);
  * @param[in] index Where to insert.
  * @return A pointer to the emplaced element. See warning and use with caution.
  */
-CSTRUCTURES_PUBLIC_API enum vec_status_e
-vector_insert_emplace(struct vector_t* vector, vec_idx_t index, void** data);
+CSTRUCTURES_PUBLIC_API void*
+vector_insert_emplace(struct vector_t* vector, vec_idx_t index);
 
 /*!
  * @brief Inserts (copies) a new element at the specified index.
