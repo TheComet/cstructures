@@ -145,22 +145,22 @@ vector_resize(struct vector_t* vector, vec_size_t size)
 }
 
 /* ------------------------------------------------------------------------- */
-enum vec_status_e
-vector_emplace(struct vector_t* vector, void** emplaced)
+void*
+vector_emplace(struct vector_t* vector)
 {
-    enum vec_status_e status;
+    void* emplaced;
     assert(vector);
 
     if (VECTOR_NEEDS_REALLOC(vector))
-        if ((status = vector_realloc(vector,
-                                     VEC_INVALID_INDEX,
-                                     vector_count(vector) * CSTRUCTURES_VEC_EXPAND_FACTOR)) != VECTOR_OK)
-            return status;
+        if (vector_realloc(vector,
+                           VEC_INVALID_INDEX,
+                           vector_count(vector) * CSTRUCTURES_VEC_EXPAND_FACTOR) != VECTOR_OK)
+            return NULL;
 
-    *emplaced = vector->data + (vector->element_size * vector->count);
+    emplaced = vector->data + (vector->element_size * vector->count);
     ++(vector->count);
 
-    return VECTOR_OK;
+    return emplaced;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -168,13 +168,12 @@ enum vec_status_e
 vector_push(struct vector_t* vector, const void* data)
 {
     void* emplaced;
-    enum vec_status_e status;
 
     assert(vector);
     assert(data);
 
-    if ((status = vector_emplace(vector, &emplaced)) != VECTOR_OK)
-        return status;
+    if ((emplaced = vector_emplace(vector)) == NULL)
+        return VECTOR_OOM;
     memcpy(emplaced, data, vector->element_size);
     return VECTOR_OK;
 }

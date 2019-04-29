@@ -141,8 +141,8 @@ vector_push(struct vector_t* vector, const void* data);
  * @return A pointer to the allocated memory for the requested element. See
  * warning and use with caution.
  */
-CSTRUCTURES_PUBLIC_API enum vec_status_e
-vector_emplace(struct vector_t* vector, void** data);
+CSTRUCTURES_PUBLIC_API void*
+vector_emplace(struct vector_t* vector);
 
 /*!
  * @brief Copies the contents of another vector and pushes it into the vector.
