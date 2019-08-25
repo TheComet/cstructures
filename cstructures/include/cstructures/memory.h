@@ -71,4 +71,6 @@ memory_get_memory_usage(void);
 CSTRUCTURES_PRIVATE_API void
 mutated_string_and_hex_dump(void* data, uintptr_t size_in_bytes);
 
+C_END
+
 #endif /* CSTRUCTURES_MEMORY_H */
