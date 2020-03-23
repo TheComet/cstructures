@@ -327,7 +327,7 @@ uintptr_t memory_get_memory_usage(void) { return 0; }
 
 /* ------------------------------------------------------------------------- */
 void
-mutated_string_and_hex_dump(void* data, uintptr_t length_in_bytes)
+mutated_string_and_hex_dump(const void* data, uintptr_t length_in_bytes)
 {
     char* dump;
     uintptr_t i;
@@ -343,7 +343,7 @@ mutated_string_and_hex_dump(void* data, uintptr_t length_in_bytes)
 
     /* mutate null terminators into dots */
     for (i = 0; i != length_in_bytes; ++i)
-        if (dump[i] == '\0')
+        if (dump[i] == '\0')  /* valgrind will complain about conditional jump depending on uninitialized value here -- that's ok */
             dump[i] = '.';
 
     /* dump */
