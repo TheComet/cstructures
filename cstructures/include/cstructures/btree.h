@@ -159,8 +159,9 @@ CSTRUCTURES_PUBLIC_API enum btree_status_e
 btree_set_existing(struct btree_t* btree, btree_key_t key, const void* value);
 
 /*!
- * @brief Either inserts a new value if it doesn't exist, or updates an
- * existing value if the key does exist.
+ * @brief If the key doesn't exist, inserts the new value and returns a pointer
+ * to the inserted value. If the key does exist, nothing is inserted and a
+ * pointer to the existing value is returned.
  * @param[in] btree The btree to insert into.
  * @param[in] key The unique key associated with the value you want to set.
  * @param[in] value A pointer to the data to insert into the tree. The data
