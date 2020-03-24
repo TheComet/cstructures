@@ -74,7 +74,7 @@ vector_free(struct vector_t* vector);
  * @brief Erases all elements in a vector.
  * @note This does not actually erase the underlying memory, it simply resets
  * the element counter. If you wish to free the underlying memory, see
- * vector_clear_free().
+ * vector_clear_compact().
  * @param[in] vector The vector to clear.
  */
 CSTRUCTURES_PUBLIC_API void
