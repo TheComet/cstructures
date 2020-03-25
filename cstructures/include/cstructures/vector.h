@@ -316,9 +316,9 @@ vector_find_element(const struct vector_t* vector, void* element);
  * @param[in] var_type Should be the type of data stored in the vector.
  * @param[in] element The element to erase.
  */
-#define VECTOR_ERASE_IN_FOR_LOOP(vector, element_type, element)              \
-    vector_erase_element(vector, element);                                   \
-    element = (element_type*)(((uint8_t*)element) - (vector)->element_size); \
+#define VECTOR_ERASE_IN_FOR_LOOP(vector, element_type, p_element)             \
+    vector_erase_element(vector, p_element);                                  \
+    p_element = (element_type*)(((uint8_t*)p_element) - (vector)->element_size); \
     internal_##var_end_of_vector = (vector)->data + (vector)->count * (vector)->element_size;
 
 C_END
