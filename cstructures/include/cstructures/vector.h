@@ -1,4 +1,4 @@
-/*!
+    /*!
  * @file vector.h
  * @brief Dynamic contiguous sequence container with guaranteed element order.
  * @page vector Ordered Vector
@@ -246,6 +246,9 @@ vector_get_element(const struct vector_t*, vec_idx_t index);
 
 CSTRUCTURES_PUBLIC_API vec_idx_t
 vector_find_element(const struct vector_t* vector, void* element);
+
+CSTRUCTURES_PUBLIC_API void
+vector_reverse(struct vector_t* vector);
 
 /*!
  * @brief Convenient macro for iterating a vector's elements.

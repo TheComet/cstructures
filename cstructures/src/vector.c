@@ -355,6 +355,29 @@ vector_find_element(const struct vector_t* vector, void* element)
     return vector_count(vector);
 }
 
+#define vector_get_scratch_element(vector) \
+    ((vector)->data + (vector)->capacity * (vector)->element_size)
+
+/* ------------------------------------------------------------------------- */
+void
+vector_reverse(struct vector_t* vector)
+{
+    assert(vector);
+
+    uint8_t* begin = vector->data;
+    uint8_t* end = vector->data + (vector->count - 1) * vector->element_size;
+    uint8_t* tmp = vector_get_scratch_element(vector);
+
+    while (begin < end)
+    {
+        memcpy(tmp, begin, vector->element_size);
+        memcpy(begin, end, vector->element_size);
+        memcpy(end, tmp, vector->element_size);
+
+        begin += vector->element_size;
+        end -= vector->element_size;
+    }
+}
 
 /* ----------------------------------------------------------------------------
  * Static functions
@@ -368,24 +391,26 @@ vector_realloc(struct vector_t *vector,
 
     /*
      * If vector hasn't allocated anything yet, just allocated the requested
-     * amount of memory and return immediately.
+     * amount of memory and return immediately. Make space at end of buffer
+     * for one scratch element, which is required for swapping elements in
+     * vector_reverse().
      */
     if (!vector->data)
     {
         new_capacity = (new_capacity == 0 ? CSTRUCTURES_VEC_MIN_CAPACITY : new_capacity);
-        vector->data = MALLOC(new_capacity * vector->element_size);
+        vector->data = MALLOC((new_capacity + 1) * vector->element_size);
         if (!vector->data)
             return VECTOR_OOM;
         vector->capacity = new_capacity;
         return VECTOR_OK;
     }
 
-    /* prepare for reallocating data */
-    if ((new_data = REALLOC(vector->data, new_capacity * vector->element_size)) == NULL)
+    /* Realloc the data. Make sure to have space for the swap element at the end */
+    if ((new_data = REALLOC(vector->data, (new_capacity  + 1) * vector->element_size)) == NULL)
         return VECTOR_OOM;
     vector->data = new_data;
 
-    /* if (no insertion index is required, copy all data to new memory */
+    /* if no insertion index is required, copy all data to new memory */
     if (insertion_index != VEC_INVALID_INDEX)
     {
         void* old_upper_elements = vector->data + (insertion_index + 0) * vector->element_size;
