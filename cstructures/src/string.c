@@ -5,43 +5,41 @@
 #include <string.h>
 
 /* ------------------------------------------------------------------------- */
-enum string_status_e
-string_create(struct string_t** str)
+struct cs_string*
+string_create(void)
 {
-    enum string_status_e status;
-
-    *str = MALLOC(sizeof **str);
-    if (*str == NULL)
+    struct cs_string* str = MALLOC(sizeof *str);
+    if (str == NULL)
         goto malloc_failed;
 
-    if ((status = string_init(*str)) != STR_OK)
+    if (string_init(str) != 0)
         goto init_failed;
 
-    return STR_OK;
+    return 0;
 
-    init_failed   : FREE(*str);
-    malloc_failed : return STR_OOM;
+    init_failed   : FREE(str);
+    malloc_failed : return NULL;
 }
 
 /* ------------------------------------------------------------------------- */
-enum string_status_e
-string_init(struct string_t* str)
+int
+string_init(struct cs_string* str)
 {
-    if (vector_init(&str->buf, sizeof(char)) != VECTOR_OK)
-        return STR_OOM;
-    return STR_OK;
+    if (vector_init(&str->buf, sizeof(char)) != 0)
+        return -1;
+    return 0;
 }
 
 /* ------------------------------------------------------------------------- */
 void
-string_deinit(struct string_t* str)
+string_deinit(struct cs_string* str)
 {
     vector_deinit(&str->buf);
 }
 
 /* ------------------------------------------------------------------------- */
 void
-string_destroy(struct string_t* str)
+string_destroy(struct cs_string* str)
 {
     string_deinit(str);
     FREE(str);
@@ -49,7 +47,7 @@ string_destroy(struct string_t* str)
 
 /* ------------------------------------------------------------------------- */
 int
-string_getline(struct string_t* str, FILE* fp)
+string_getline(struct cs_string* str, FILE* fp)
 {
     int ret;
     assert(fp);
@@ -71,12 +69,12 @@ string_getline(struct string_t* str, FILE* fp)
                 continue;
 
             char nullterm = '\0';
-            if (vector_push(&str->buf, &nullterm) != VECTOR_OK)
+            if (vector_push(&str->buf, &nullterm) != 0)
                 return -1;
             return 1;
         }
 
-        if (vector_push(&str->buf, &c) != VECTOR_OK)
+        if (vector_push(&str->buf, &c) != 0)
             return -1;
     }
 
@@ -85,7 +83,7 @@ string_getline(struct string_t* str, FILE* fp)
 
 /* ------------------------------------------------------------------------- */
 char*
-string_tok(struct string_t* str, char delimiter, char** saveptr)
+cs_stringok(struct cs_string* str, char delimiter, char** saveptr)
 {
     char* begin_ptr;
     char* end_ptr;

@@ -8,34 +8,28 @@
 
 C_BEGIN
 
-enum string_status_e
+struct cs_string
 {
-    STR_OK  = 0,
-    STR_OOM = -1
+    struct cs_vector buf;
 };
 
-struct string_t
-{
-    struct vector_t buf;
-};
-
-struct string_split_state_t
+struct cs_string_split_state
 {
     char token;
     size_t split_count;
 };
 
-CSTRUCTURES_PUBLIC_API enum string_status_e
-string_create(struct string_t** str);
+CSTRUCTURES_PUBLIC_API struct cs_string*
+string_create(void);
 
-CSTRUCTURES_PUBLIC_API enum string_status_e
-string_init(struct string_t* str);
-
-CSTRUCTURES_PUBLIC_API void
-string_deinit(struct string_t* str);
+CSTRUCTURES_PUBLIC_API int
+string_init(struct cs_string* str);
 
 CSTRUCTURES_PUBLIC_API void
-string_destroy(struct string_t* str);
+string_deinit(struct cs_string* str);
+
+CSTRUCTURES_PUBLIC_API void
+string_destroy(struct cs_string* str);
 
 /*!
  * @brief Reads a line of text from the stream.
@@ -45,10 +39,10 @@ string_destroy(struct string_t* str);
  * are no more strings to read. Returns -1 if an error occurred.
  */
 CSTRUCTURES_PUBLIC_API int
-string_getline(struct string_t* str, FILE* fp);
+string_getline(struct cs_string* str, FILE* fp);
 
 char*
-string_tok(struct string_t* str, char delimiter, char** saveptr);
+cs_stringtok(struct cs_string* str, char delimiter, char** saveptr);
 
 #define string_length(str) \
         (vector_count(&str->buf) - 1)

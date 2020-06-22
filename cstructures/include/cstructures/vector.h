@@ -17,25 +17,18 @@
 C_BEGIN
 
 #if defined(CSTRUCTURES_VEC_64BIT)
-typedef uint64_t vec_size_t;
+typedef uint64_t cs_vec_size;
 #else
-typedef uint32_t vec_size_t;
+typedef uint32_t cs_vec_size;
 #endif
-typedef intptr_t vec_idx_t;
+typedef intptr_t cs_vec_idx;
 
-enum vec_status_e
-{
-    VECTOR_OK  = 0,
-    VECTOR_OOM = -1,
-    VECTOR_DIFFERENT_ELEMENT_SIZES = -2
-};
-
-struct vector_t
+struct cs_vector
 {
     uint8_t* data;            /* pointer to the contiguous section of memory */
-    vec_size_t capacity;      /* how many elements actually fit into the allocated space */
-    vec_size_t count;         /* number of elements inserted */
-    vec_size_t element_size;  /* how large one element is in bytes */
+    cs_vec_size capacity;      /* how many elements actually fit into the allocated space */
+    cs_vec_size count;         /* number of elements inserted */
+    cs_vec_size element_size;  /* how large one element is in bytes */
 };
 
 /*!
@@ -44,8 +37,8 @@ struct vector_t
  * the vector to store. Typically one would pass sizeof(my_data_type).
  * @return Returns the newly created vector object.
  */
-CSTRUCTURES_PUBLIC_API enum vec_status_e
-vector_create(struct vector_t** vec, const vec_size_t element_size);
+CSTRUCTURES_PUBLIC_API struct cs_vector*
+vector_create(const cs_vec_size element_size);
 
 /*!
  * @brief Initializes an existing vector object.
@@ -55,12 +48,12 @@ vector_create(struct vector_t** vec, const vec_size_t element_size);
  * @param[in] element_size Specifies the size in bytes of the type of data you
  * want the vector to store. Typically one would pass sizeof(my_data_type).
  */
-CSTRUCTURES_PUBLIC_API enum vec_status_e
-vector_init(struct vector_t* vector,
-            const vec_size_t element_size);
+CSTRUCTURES_PUBLIC_API int
+vector_init(struct cs_vector* vector,
+            const cs_vec_size element_size);
 
 CSTRUCTURES_PUBLIC_API void
-vector_deinit(struct vector_t* vector);
+vector_deinit(struct cs_vector* vector);
 
 /*!
  * @brief Destroys an existing vector object and frees all memory allocated by
@@ -68,7 +61,7 @@ vector_deinit(struct vector_t* vector);
  * @param[in] vector The vector to free.
  */
 CSTRUCTURES_PUBLIC_API void
-vector_free(struct vector_t* vector);
+vector_free(struct cs_vector* vector);
 
 /*!
  * @brief Erases all elements in a vector.
@@ -78,20 +71,20 @@ vector_free(struct vector_t* vector);
  * @param[in] vector The vector to clear.
  */
 CSTRUCTURES_PUBLIC_API void
-vector_clear(struct vector_t* vector);
+vector_clear(struct cs_vector* vector);
 
 /*!
  * @brief Erases all elements in a vector and frees their memory.
  * @param[in] vector The vector to clear.
  */
 CSTRUCTURES_PUBLIC_API void
-vector_compact(struct vector_t* vector);
+vector_compact(struct cs_vector* vector);
 
 CSTRUCTURES_PUBLIC_API void
-vector_clear_compact(struct vector_t* vector);
+vector_clear_compact(struct cs_vector* vector);
 
-CSTRUCTURES_PUBLIC_API enum vec_status_e
-vector_reserve(struct vector_t* vector, vec_size_t size);
+CSTRUCTURES_PUBLIC_API int
+vector_reserve(struct cs_vector* vector, cs_vec_size size);
 
 /*!
  * @brief Sets the size of the vector to exactly the size specified. If the
@@ -101,8 +94,8 @@ vector_reserve(struct vector_t* vector, vec_size_t size);
  * @param[in] size The new size of the vector.
  * @return Returns VECTOR_OOM on failure, CSTRUCTURES_OK on success.
  */
-CSTRUCTURES_PUBLIC_API enum vec_status_e
-vector_resize(struct vector_t* vector, vec_size_t size);
+CSTRUCTURES_PUBLIC_API int
+vector_resize(struct cs_vector* vector, cs_vec_size size);
 
 /*!
  * @brief Gets the number of elements that have been inserted into the vector.
@@ -127,8 +120,8 @@ vector_resize(struct vector_t* vector, vec_size_t size);
  * @return Returns CSTRUCTURES_OK if the data was successfully pushed, VECTOR_OOM
  * if otherwise.
  */
-CSTRUCTURES_PUBLIC_API enum vec_status_e
-vector_push(struct vector_t* vector, const void* data);
+CSTRUCTURES_PUBLIC_API int
+vector_push(struct cs_vector* vector, const void* data);
 
 /*!
  * @brief Allocates space for a new element at the head of the vector, but does
@@ -142,14 +135,14 @@ vector_push(struct vector_t* vector, const void* data);
  * warning and use with caution.
  */
 CSTRUCTURES_PUBLIC_API void*
-vector_emplace(struct vector_t* vector);
+vector_emplace(struct cs_vector* vector);
 
 /*!
  * @brief Copies the contents of another vector and pushes it into the vector.
  * @return Returns CSTRUCTURES_OK if successful, VECTOR_OOM if otherwise.
  */
-CSTRUCTURES_PUBLIC_API enum vec_status_e
-vector_push_vector(struct vector_t* vector, const struct vector_t* source_vector);
+CSTRUCTURES_PUBLIC_API int
+vector_push_vector(struct cs_vector* vector, const struct cs_vector* source_vector);
 
 /*!
  * @brief Removes an element from the back (end) of the vector.
@@ -162,7 +155,7 @@ vector_push_vector(struct vector_t* vector, const struct vector_t* source_vector
  * If there are no elements to pop, NULL is returned.
  */
 CSTRUCTURES_PUBLIC_API void*
-vector_pop(struct vector_t* vector);
+vector_pop(struct cs_vector* vector);
 
 /*!
  * @brief Returns the very last element of the vector.
@@ -175,7 +168,7 @@ vector_pop(struct vector_t* vector);
  * If there are no elements in the vector, NULL is returned.
  */
 CSTRUCTURES_PUBLIC_API void*
-vector_back(const struct vector_t* vector);
+vector_back(const struct cs_vector* vector);
 
 /*!
  * @brief Allocates space for a new element at the specified index, but does
@@ -192,7 +185,7 @@ vector_back(const struct vector_t* vector);
  * @return A pointer to the emplaced element. See warning and use with caution.
  */
 CSTRUCTURES_PUBLIC_API void*
-vector_insert_emplace(struct vector_t* vector, vec_idx_t index);
+vector_insert_emplace(struct cs_vector* vector, cs_vec_idx index);
 
 /*!
  * @brief Inserts (copies) a new element at the specified index.
@@ -206,8 +199,8 @@ vector_insert_emplace(struct vector_t* vector, vec_idx_t index);
  * sizeof(data) is equal to what was specified when the vector was first
  * created. If this is not the case then it could cause undefined behaviour.
  */
-CSTRUCTURES_PUBLIC_API enum vec_status_e
-vector_insert(struct vector_t* vector, vec_idx_t index, void* data);
+CSTRUCTURES_PUBLIC_API int
+vector_insert(struct cs_vector* vector, cs_vec_idx index, void* data);
 
 /*!
  * @brief Erases the specified element from the vector.
@@ -217,7 +210,7 @@ vector_insert(struct vector_t* vector, vec_idx_t index, void* data);
  * ranges from **0** to **vector_count()-1**.
  */
 CSTRUCTURES_PUBLIC_API void
-vector_erase_index(struct vector_t* vector, vec_idx_t index);
+vector_erase_index(struct cs_vector* vector, cs_vec_idx index);
 
 /*!
  * @brief Removes the element in the vector pointed to by **element**.
@@ -226,7 +219,7 @@ vector_erase_index(struct vector_t* vector, vec_idx_t index);
  * @note The pointer must point into the vector's data.
  */
 CSTRUCTURES_PUBLIC_API void
-vector_erase_element(struct vector_t* vector, void* element);
+vector_erase_element(struct cs_vector* vector, void* element);
 
 /*!
  * @brief Gets a pointer to the specified element in the vector.
@@ -242,20 +235,20 @@ vector_erase_element(struct vector_t* vector, void* element);
  * returned.
  */
 CSTRUCTURES_PUBLIC_API void*
-vector_get_element(const struct vector_t*, vec_idx_t index);
+vector_get_element(const struct cs_vector*, cs_vec_idx index);
 
-CSTRUCTURES_PUBLIC_API vec_idx_t
-vector_find_element(const struct vector_t* vector, void* element);
+CSTRUCTURES_PUBLIC_API cs_vec_idx
+vector_find_element(const struct cs_vector* vector, void* element);
 
 CSTRUCTURES_PUBLIC_API void
-vector_reverse(struct vector_t* vector);
+vector_reverse(struct cs_vector* vector);
 
 /*!
  * @brief Convenient macro for iterating a vector's elements.
  *
  * Example:
  * ```
- * vector_t* some_vector = (a vector containing elements of type "bar")
+ * cs_vector* some_vector = (a vector containing elements of type "bar")
  * VECTOR_FOR_EACH(some_vector, bar, element)
  * {
  *     do_something_with(element);  ("element" is now of type "bar*")
@@ -290,39 +283,38 @@ vector_reverse(struct vector_t* vector);
  * @param[in] var The name of a temporary variable you'd lcstructurese to use within the
  * for loop to reference the current element.
  * @param[in] begin_index The index (starting at 0) of the first element to
- * start with.
+ * start with (inclusive).
  * @param[in] end_index The index of the last element to iterate (exclusive).
  */
 #define VECTOR_FOR_EACH_RANGE(vector, var_type, var, begin_index, end_index) { \
-    var_type* var;                                                             \
-    uint8_t* internal_##var_end_of_vector = (vector)->data + end_index * (vector)->element_size; \
-    for(var = (var_type*)((vector)->data + begin_index * (vector)->element_size); \
-        (uint8_t*)var != internal_##var_end_of_vector;                         \
+    var_type* var; \
+    uint8_t* internal_##var_end_of_vector = (vector)->data + (end_index) * (vector)->element_size; \
+    for(var = (var_type*)((vector)->data + (begin_index) * (vector)->element_size); \
+        (uint8_t*)var < internal_##var_end_of_vector;                          \
         var = (var_type*)(((uint8_t*)var) + (vector)->element_size)) {
+
+/*!
+ * @brief Convenient macro for iterating a range of a vector's elements in reverse.
+ * @param[in] vector A pointer to the vector to iterate.
+ * @param[in] var_type Should be the type of data stored in the vector. For
+ * example, if your vector is storing ```type_t*``` objects then
+ * var_type should equal ```type_t``` (without the pointer).
+ * @param[in] var The name of a temporary variable you'd lcstructurese to use within the
+ * for loop to reference the current element.
+ * @param[in] begin_index The "lower" index (starting at 0) of the last element (inclusive).
+ * @param[in] end_index The "upper" index of the first element (exclusive).
+ */
+#define VECTOR_FOR_EACH_RANGE_R(vector, var_type, var, begin_index, end_index) { \
+    var_type* var;                                                             \
+    uint8_t* internal_##var_start_of_vector = (vector)->data + (begin_index) * (vector)->element_size - (vector)->element_size; \
+    for(var = (var_type*)((vector)->data + (end_index) * (vector)->element_size - (vector)->element_size); \
+        (uint8_t*)var > internal_##var_start_of_vector;                        \
+        var = (var_type*)(((uint8_t*)var) - (vector)->element_size)) {
 
 /*!
  * @brief Closes a for each scope previously opened by VECTOR_FOR_EACH.
  */
 #define VECTOR_END_EACH }}
-
-/*!
- * @brief Convenient macro for erasing an element while iterating a vector.
- * @warning Only call this while iterating.
- * Example:
- * ```
- * VECTOR_FOR_EACH(some_vector, bar, element)
- * {
- *     VECTOR_ERASE_IN_FOR_LOOP(some_vector, bar, element);
- * }
- * ```
- * @param[in] vector The vector to erase from.
- * @param[in] var_type Should be the type of data stored in the vector.
- * @param[in] element The element to erase.
- */
-#define VECTOR_ERASE_IN_FOR_LOOP(vector, element_type, p_element)             \
-    vector_erase_element(vector, p_element);                                  \
-    p_element = (element_type*)(((uint8_t*)p_element) - (vector)->element_size); \
-    internal_##var_end_of_vector = (vector)->data + (vector)->count * (vector)->element_size;
 
 C_END
 
