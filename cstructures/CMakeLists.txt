@@ -54,9 +54,17 @@ target_include_directories (cstructures
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
         $<INSTALL_INTERFACE:include>)
 target_compile_options (cstructures
-    PRIVATE
-        $<$<C_COMPILER_ID:GNU>:-W -Wall -Wextra -Werror -Wshadow -Wconversion -Wno-unused-parameter>
-        $<$<C_COMPILER_ID:GNU>:$<$<BOOL:${CSTRUCTURES_PROFILING}>:-fno-omit-frame-pointer>>)
+    PRIVATE $<$<C_COMPILER_ID:MSVC>:
+        /EHa /MTd /W4 /wd4305 /wd4201 /wd4706 /wd4100 /wd4244 /wd4477 /wd4003 /D_CRT_SECURE_NO_DEPRECATE
+    >
+    PRIVATE $<$<C_COMPILER_ID:GNU>:
+        -W -Wall -Wextra -Wshadow -Wconversion -Wno-unused-parameter
+        $<$<BOOL:${CSTRUCTURES_PROFILING}>:-pg -fno-omit-frame-pointer>
+    >
+    PRIVATE $<$<C_COMPILER_ID:Clang>:
+        -W -Wall -Wextra -Wshadow -Wconversion -Wno-unused-parameter
+        $<$<BOOL:${CSTRUCTURES_PROFILING}>:-pg -fno-omit-frame-pointer>
+    >)
 
 ###############################################################################
 # Unit tests

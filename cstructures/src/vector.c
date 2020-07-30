@@ -329,8 +329,8 @@ vector_erase_element(struct cs_vector* vector, void* element)
     if (element != (void*)last_element)
     {
         memmove(element,                         /* target is to overwrite the element */
-                element + vector->element_size,  /* read everything from next element */
-                (cs_vec_size)(last_element - element));  /* ptr1 - ptr2 yields signed result, but last_element is always larger than element */
+                (uint8_t*)element + vector->element_size,  /* read everything from next element */
+                (cs_vec_size)((uint8_t*)last_element - (uint8_t*)element));  /* ptr1 - ptr2 yields signed result, but last_element is always larger than element */
     }
     --vector->count;
 }
