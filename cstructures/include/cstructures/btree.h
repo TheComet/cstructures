@@ -105,7 +105,7 @@ btree_create(struct btree_t** btree, uint32_t value_size);
  * items will be lost and a memory leak will have been created.
  * @param[in] btree The btree object to initialise.
  */
-CSTRUCTURES_PUBLIC_API enum btree_status_e
+CSTRUCTURES_PUBLIC_API void
 btree_init(struct btree_t* btree, uint32_t value_size);
 
 CSTRUCTURES_PUBLIC_API void

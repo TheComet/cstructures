@@ -22,7 +22,7 @@ struct cs_string_split_state
 CSTRUCTURES_PUBLIC_API struct cs_string*
 string_create(void);
 
-CSTRUCTURES_PUBLIC_API int
+CSTRUCTURES_PUBLIC_API void
 string_init(struct cs_string* str);
 
 CSTRUCTURES_PUBLIC_API void

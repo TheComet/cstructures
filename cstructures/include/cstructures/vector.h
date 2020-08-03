@@ -48,7 +48,7 @@ vector_create(const cs_vec_size element_size);
  * @param[in] element_size Specifies the size in bytes of the type of data you
  * want the vector to store. Typically one would pass sizeof(my_data_type).
  */
-CSTRUCTURES_PUBLIC_API int
+CSTRUCTURES_PUBLIC_API void
 vector_init(struct cs_vector* vector,
             const cs_vec_size element_size);
 

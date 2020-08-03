@@ -10,24 +10,17 @@ string_create(void)
 {
     struct cs_string* str = MALLOC(sizeof *str);
     if (str == NULL)
-        goto malloc_failed;
+        return NULL;
 
-    if (string_init(str) != 0)
-        goto init_failed;
-
+    string_init(str);
     return 0;
-
-    init_failed   : FREE(str);
-    malloc_failed : return NULL;
 }
 
 /* ------------------------------------------------------------------------- */
-int
+void
 string_init(struct cs_string* str)
 {
-    if (vector_init(&str->buf, sizeof(char)) != 0)
-        return -1;
-    return 0;
+    vector_init(&str->buf, sizeof(char));
 }
 
 /* ------------------------------------------------------------------------- */

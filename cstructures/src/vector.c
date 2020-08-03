@@ -37,22 +37,17 @@ vector_create(const cs_vec_size element_size)
     struct cs_vector* vector;
     if ((vector = MALLOC(sizeof *vector)) == NULL)
         return NULL;
-    if (vector_init(vector, element_size) != 0)
-    {
-        FREE(vector);
-        return NULL;
-    }
+    vector_init(vector, element_size);
     return vector;
 }
 
 /* ------------------------------------------------------------------------- */
-int
+void
 vector_init(struct cs_vector* vector, const cs_vec_size element_size)
 {
     assert(vector);
     memset(vector, 0, sizeof *vector);
     vector->element_size = element_size;
-    return 0;
 }
 
 /* ------------------------------------------------------------------------- */

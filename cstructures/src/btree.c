@@ -102,7 +102,7 @@ btree_create(struct btree_t** btree, uint32_t value_size)
 }
 
 /* ------------------------------------------------------------------------- */
-enum btree_status_e
+void
 btree_init(struct btree_t* btree, uint32_t value_size)
 {
     assert(btree);
@@ -110,8 +110,6 @@ btree_init(struct btree_t* btree, uint32_t value_size)
     btree_count(btree) = 0;
     btree->capacity = 0;
     btree->value_size = value_size;
-
-    return BTREE_OK;
 }
 
 /* ------------------------------------------------------------------------- */
