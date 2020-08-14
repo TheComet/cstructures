@@ -21,7 +21,7 @@ option (CSTRUCTURES_MEMORY_DEBUGGING "Enable tracking malloc/realloc/free calls 
 option (CSTRUCTURES_PIC "Generate position independent code" ON)
 option (CSTRUCTURES_PROFILING "Enable -pg and -fno-omit-frame-pointer" OFF)
 option (CSTRUCTURES_TESTS "Compile unit tests (requires C++)" OFF)
-option (CSTRUCTURES_VEC_64BIT "Set vector capacity to 2^64 instead of 2^32" OFF)
+option (CSTRUCTURES_VEC_64BIT "Set vector capacity to 2^64 instead of 2^32, but makes the structure 32 bytes instead of 20 bytes" OFF)
 
 if (${CSTRUCTURES_TESTS} OR ${CSTRUCTURES_BENCHMARKS})
     set (NEED_CXX CXX)

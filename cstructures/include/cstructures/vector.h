@@ -261,17 +261,17 @@ vector_reverse(struct cs_vector* vector);
  */
 #define VECTOR_FOR_EACH(vector, var_type, var) {                             \
     var_type* var;                                                           \
-    uint8_t* internal_##var_end_of_vector = (vector)->data + (vector)->count * (vector)->element_size; \
+    uint8_t* internal_##var##_end_of_vector = (vector)->data + (vector)->count * (vector)->element_size; \
     for(var = (var_type*)(vector)->data;                                     \
-        (uint8_t*)var != internal_##var_end_of_vector;                       \
+        (uint8_t*)var != internal_##var##_end_of_vector;                     \
         var = (var_type*)(((uint8_t*)var) + (vector)->element_size)) {
 
 
 #define VECTOR_FOR_EACH_R(vector, var_type, var) {                           \
     var_type* var;                                                           \
-    uint8_t* internal_##var_start_of_vector = (vector)->data - (vector)->element_size; \
+    uint8_t* internal_##var##_start_of_vector = (vector)->data - (vector)->element_size; \
     for(var = (var_type*)((vector)->data + (vector)->count * (vector)->element_size - (vector)->element_size); \
-        (uint8_t*)var != internal_##var_start_of_vector;                     \
+        (uint8_t*)var != internal_##var##_start_of_vector;                   \
         var = (var_type*)(((uint8_t*)var) - (vector)->element_size)) {
 
 /*!
