@@ -4,23 +4,23 @@
 #include "cstructures/config.h"
 #include "cstructures/hash.h"
 
-#define HM_SLOT_UNUSED    ((hash32_t)0)
-#define HM_SLOT_RIP ((hash32_t)1)
-#define HM_SLOT_INVALID   ((hash32_t)-1)
+#define HM_SLOT_UNUSED    ((cs_hash32)0)
+#define HM_SLOT_RIP       ((cs_hash32)1)
+#define HM_SLOT_INVALID   ((cs_hash32)-1)
 #define HM_REHASH_AT_PERCENT   70
 #define HM_DEFAULT_TABLE_COUNT 128
 #define HM_EXPAND_FACTOR 3
 
 C_BEGIN
 
-enum hashmap_status_t
+enum cs_hashmap_status
 {
     HM_EXISTS = 1,
     HM_OK = 0,
     HM_OOM = -1
 };
 
-struct hashmap_t
+struct cs_hashmap
 {
     uint32_t     table_count;
     uint32_t     key_size;
@@ -67,13 +67,13 @@ struct hashmap_t
  * @return If successful, returns CSTRUCTURES_OK. If allocation fails,
  * CSTRUCTURES_ERR_OUT_OF_MEMORY is returned.
  */
-CSTRUCTURES_PRIVATE_API enum hashmap_status_t
-hashmap_create(struct hashmap_t** hm,
+CSTRUCTURES_PRIVATE_API enum cs_hashmap_status
+hashmap_create(struct cs_hashmap** hm,
                uint32_t key_size,
                uint32_t value_size);
 
-CSTRUCTURES_PRIVATE_API enum hashmap_status_t
-hashmap_create_with_options(struct hashmap_t** hm,
+CSTRUCTURES_PRIVATE_API enum cs_hashmap_status
+hashmap_create_with_options(struct cs_hashmap** hm,
                             uint32_t key_size,
                             uint32_t value_size,
                             uint32_t table_count,
@@ -83,13 +83,13 @@ hashmap_create_with_options(struct hashmap_t** hm,
  * @brief Initializes a new hashmap. See hashmap_create() for details on
  * parameters and return values.
  */
-CSTRUCTURES_PRIVATE_API enum hashmap_status_t
-hashmap_init(struct hashmap_t* hm,
+CSTRUCTURES_PRIVATE_API enum cs_hashmap_status
+hashmap_init(struct cs_hashmap* hm,
              uint32_t key_size,
              uint32_t value_size);
 
-CSTRUCTURES_PRIVATE_API enum hashmap_status_t
-hashmap_init_with_options(struct hashmap_t* hm,
+CSTRUCTURES_PRIVATE_API enum cs_hashmap_status
+hashmap_init_with_options(struct cs_hashmap* hm,
                           uint32_t key_size,
                           uint32_t value_size,
                           uint32_t table_count,
@@ -99,16 +99,16 @@ hashmap_init_with_options(struct hashmap_t* hm,
  * @brief Cleans up internal resources without freeing the hashmap object itself.
  */
 CSTRUCTURES_PRIVATE_API void
-hashmap_deinit(struct hashmap_t* hm);
+hashmap_deinit(struct cs_hashmap* hm);
 
 /*!
  * @brief Cleans up all resources and frees the hashmap.
  */
 CSTRUCTURES_PRIVATE_API void
-hashmap_free(struct hashmap_t* hm);
+hashmap_free(struct cs_hashmap* hm);
 
-CSTRUCTURES_PRIVATE_API enum hashmap_status_t
-hashmap_reserve(struct hashmap_t* hm,
+CSTRUCTURES_PRIVATE_API enum cs_hashmap_status
+hashmap_reserve(struct cs_hashmap* hm,
                 uint32_t table_count);
 
 /*!
@@ -126,44 +126,44 @@ hashmap_reserve(struct hashmap_t* hm,
  * and CSTRUCTURES_HASH_EXISTS is returned. If the key is successfully inserted, CSTRUCTURES_OK
  * is returned. If insertion failed, CSTRUCTURES_ERR_OUT_OF_MEMORY is returned.
  */
-CSTRUCTURES_PRIVATE_API enum hashmap_status_t
-hashmap_insert(struct hashmap_t* hm,
+CSTRUCTURES_PRIVATE_API enum cs_hashmap_status
+hashmap_insert(struct cs_hashmap* hm,
                const void* key,
                const void* value);
 
-CSTRUCTURES_PRIVATE_API enum hashmap_status_t
-hashmap_insert_str(struct hashmap_t* hm,
+CSTRUCTURES_PRIVATE_API enum cs_hashmap_status
+hashmap_insert_str(struct cs_hashmap* hm,
                    const char* key,
                    const void* value);
 
 CSTRUCTURES_PRIVATE_API void*
-hashmap_erase(struct hashmap_t* hm,
+hashmap_erase(struct cs_hashmap* hm,
               const void* key);
 
 CSTRUCTURES_PRIVATE_API void*
-hashmap_erase_str(struct hashmap_t* hm,
+hashmap_erase_str(struct cs_hashmap* hm,
                   const char* key,
-                  enum hashmap_status_t* status);
+                  enum cs_hashmap_status* status);
 
 CSTRUCTURES_PRIVATE_API void*
-hashmap_find(const struct hashmap_t* hm, const void* key);
+hashmap_find(const struct cs_hashmap* hm, const void* key);
 
 CSTRUCTURES_PRIVATE_API void*
-hashmap_find_str(struct hashmap_t* hm, const char* key);
+hashmap_find_str(struct cs_hashmap* hm, const char* key);
 
 #define hashmap_count(hm) ((hm)->slots_used)
 
 #define HASHMAP_FOR_EACH(hm, key_t, value_t, key, value) { \
     key_t* key; \
     value_t* value; \
-    hash32_t pos_##value; \
+    cs_hash32 pos_##value; \
     for (pos_##value = 0; \
         pos_##value != (hm)->table_count && \
-            ((key = (key_t*)((uint8_t*)(hm)->storage + (sizeof(hash32_t) + (hm)->key_size) * pos_##value + sizeof(hash32_t))) || 1) && \
-            ((value = (value_t*)((uint8_t*)(hm)->storage + (sizeof(hash32_t) + (hm)->key_size) * (hm)->table_count + (hm)->value_size * pos_##value)) || 1); \
+            ((key = (key_t*)((uint8_t*)(hm)->storage + (sizeof(cs_hash32) + (hm)->key_size) * pos_##value + sizeof(cs_hash32))) || 1) && \
+            ((value = (value_t*)((uint8_t*)(hm)->storage + (sizeof(cs_hash32) + (hm)->key_size) * (hm)->table_count + (hm)->value_size * pos_##value)) || 1); \
         ++pos_##value) \
     { \
-        hash32_t slot_##value = *(hash32_t*)((uint8_t*)(hm)->storage + (sizeof(hash32_t) + (hm)->key_size) * pos_##value); \
+        cs_hash32 slot_##value = *(cs_hash32*)((uint8_t*)(hm)->storage + (sizeof(cs_hash32) + (hm)->key_size) * pos_##value); \
         if (slot_##value == HM_SLOT_UNUSED || slot_##value == HM_SLOT_RIP || slot_##value == HM_SLOT_INVALID) \
             continue; \
 

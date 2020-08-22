@@ -7,15 +7,15 @@
 C_BEGIN
 
 #if defined(CSTRUCTURES_BTREE_64BIT_KEYS)
-typedef uint64_t btree_key_t;
+typedef uint64_t cs_btree_key;
 #else
-typedef uint32_t btree_key_t;
+typedef uint32_t cs_btree_key;
 #endif
 
 #if defined(CSTRUCTURES_BTREE_64BIT_CAPACITY)
-typedef uint64_t btree_size_t;
+typedef uint64_t cs_btree_size;
 #else
-typedef uint32_t btree_size_t;
+typedef uint32_t cs_btree_size;
 #endif
 
 /* Memory address of the last valid key + 1 (i.e. dereferencing this is not a valid key) */
@@ -24,7 +24,7 @@ typedef uint32_t btree_size_t;
 
 /* Memory address of the first value assuming the specified capacity */
 #define BTREE_VALUE_BEG_CAP(btree, cap) \
-        (void*)((btree_key_t*)(btree)->data + (cap))
+        (void*)((cs_btree_key*)(btree)->data + (cap))
 
 /* Memory address of the first value */
 #define BTREE_VALUE_BEG(btree) \
@@ -36,7 +36,7 @@ typedef uint32_t btree_size_t;
 
 /* Memory address of key at index i */
 #define BTREE_KEY(btree, i) \
-        ((btree_key_t*)(btree)->data + (i))
+        ((cs_btree_key*)(btree)->data + (i))
 
 /* Memory address of value at index i */
 #define BTREE_VALUE(btree, i) \
@@ -47,21 +47,21 @@ typedef uint32_t btree_size_t;
 
 /* Convert a key memory address to an index */
 #define BTREE_KEY_TO_IDX(btree, key) \
-        (btree_size_t)((btree_key_t*)(key) - (btree_key_t*)(btree)->data)
+        (cs_btree_size)((cs_btree_key*)(key) - (cs_btree_key*)(btree)->data)
 
 /* Convert a value memory address to an index */
 #define BTREE_VALUE_TO_IDX(btree, value) \
-        (btree_size_t)(((uint8_t*)value - (uint8_t*)BTREE_VALUE_BEG(btree)) / btree_value_size(btree))
+        (cs_btree_size)(((uint8_t*)value - (uint8_t*)BTREE_VALUE_BEG(btree)) / btree_value_size(btree))
 
 #define BTREE_KV_SIZE(btree) \
-        (sizeof(btree_key_t) + (btree)->value_size)
+        (sizeof(cs_btree_key) + (btree)->value_size)
 
 #define BTREE_NEEDS_REALLOC(btree) \
         ((btree)->count == (btree)->capacity)
 
-#define BTREE_INVALID_KEY ((btree_key_t)-1)
+#define BTREE_INVALID_KEY ((cs_btree_key)-1)
 
-enum btree_status_e
+enum cs_btree_status
 {
     BTREE_NOT_FOUND    = 2,
     BTREE_EXISTS       = 1,
@@ -73,11 +73,11 @@ enum btree_status_e
  * @brief Implements a container of sorted key-value pairs stored in flattened
  * memory (sorted by key).
  */
-struct btree_t
+struct cs_btree
 {
     void* data;
-    btree_size_t count;
-    btree_size_t capacity;
+    cs_btree_size count;
+    cs_btree_size capacity;
     uint32_t value_size;
 };
 
@@ -95,8 +95,8 @@ struct btree_t
  * @return Returns the newly created btree object. It must be freed with
  * btree_free() when no longer required.
  */
-CSTRUCTURES_PUBLIC_API enum btree_status_e
-btree_create(struct btree_t** btree, uint32_t value_size);
+CSTRUCTURES_PUBLIC_API enum cs_btree_status
+btree_create(struct cs_btree** btree, uint32_t value_size);
 
 /*!
  * @brief Initialises an existing btree object.
@@ -106,10 +106,10 @@ btree_create(struct btree_t** btree, uint32_t value_size);
  * @param[in] btree The btree object to initialise.
  */
 CSTRUCTURES_PUBLIC_API void
-btree_init(struct btree_t* btree, uint32_t value_size);
+btree_init(struct cs_btree* btree, uint32_t value_size);
 
 CSTRUCTURES_PUBLIC_API void
-btree_deinit(struct btree_t* btree);
+btree_deinit(struct cs_btree* btree);
 
 /*!
  * @brief Destroys an existing btree object and FREEs the underlying memory.
@@ -117,13 +117,13 @@ btree_deinit(struct btree_t* btree);
  * @param[in] btree The btree object to free.
  */
 CSTRUCTURES_PUBLIC_API void
-btree_free(struct btree_t* btree);
+btree_free(struct cs_btree* btree);
 
 /*!
  *
  */
-CSTRUCTURES_PUBLIC_API enum btree_status_e
-btree_reserve(struct btree_t* btree, btree_size_t size);
+CSTRUCTURES_PUBLIC_API enum cs_btree_status
+btree_reserve(struct cs_btree* btree, cs_btree_size size);
 
 /*!
  * @brief Inserts an item into the btree using a key.
@@ -141,8 +141,8 @@ btree_reserve(struct btree_t* btree, btree_size_t size);
  * if the key already exists (in which case nothing is inserted). Returns
  * BTREE_OOM if not enough memory was available in the case of a reallocation.
  */
-CSTRUCTURES_PUBLIC_API enum btree_status_e
-btree_insert_new(struct btree_t* btree, btree_key_t key, const void* value);
+CSTRUCTURES_PUBLIC_API enum cs_btree_status
+btree_insert_new(struct cs_btree* btree, cs_btree_key key, const void* value);
 
 /*!
  * @brief Updates an existing value. If the key doesn't exist, this function
@@ -155,8 +155,8 @@ btree_insert_new(struct btree_t* btree, btree_key_t key, const void* value);
  * @return Returns BTREE_OK if the value was found and updated. Returns
  * BTREE_NOT_FOUND if the key was not found. Nothing happens in this case.
  */
-CSTRUCTURES_PUBLIC_API enum btree_status_e
-btree_set_existing(struct btree_t* btree, btree_key_t key, const void* value);
+CSTRUCTURES_PUBLIC_API enum cs_btree_status
+btree_set_existing(struct cs_btree* btree, cs_btree_key key, const void* value);
 
 /*!
  * @brief If the key doesn't exist, inserts the new value and returns a pointer
@@ -174,8 +174,8 @@ btree_set_existing(struct btree_t* btree, btree_key_t key, const void* value);
  * BTREE_NOT_FOUND if a new entry was made. Return BTREE_OOM if not enough
  * memory was available in the case of a reallocation.
  */
-CSTRUCTURES_PUBLIC_API enum btree_status_e
-btree_insert_or_get(struct btree_t* btree, btree_key_t key, const void* value, void** inserted_value);
+CSTRUCTURES_PUBLIC_API enum cs_btree_status
+btree_insert_or_get(struct cs_btree* btree, cs_btree_key key, const void* value, void** inserted_value);
 
 /*!
  * @brief Looks for the specified key in the btree and returns a pointer to the
@@ -188,7 +188,7 @@ btree_insert_or_get(struct btree_t* btree, btree_key_t key, const void* value, v
  * @param[in] key The key to search for.
  */
 CSTRUCTURES_PUBLIC_API void*
-btree_find(const struct btree_t* btree, btree_key_t key);
+btree_find(const struct cs_btree* btree, cs_btree_key key);
 
 /*!
  * @brief Searches for a key that matches the specified value.
@@ -198,8 +198,8 @@ btree_find(const struct btree_t* btree, btree_key_t key);
  * @return Returns the key if it was successfully found, or BTREE_INVALID_KEY if
  * otherwise.
  */
-CSTRUCTURES_PUBLIC_API btree_key_t*
-btree_find_key(const struct btree_t* btree, const void* value);
+CSTRUCTURES_PUBLIC_API cs_btree_key*
+btree_find_key(const struct cs_btree* btree, const void* value);
 
 /*!
  * @brief Searches for the value associated with the specified key and compares
@@ -212,7 +212,7 @@ btree_find_key(const struct btree_t* btree, const void* value);
  * Returns a logical "false" otherwise (i.e. 0)
  */
 CSTRUCTURES_PUBLIC_API int
-btree_find_and_compare(const struct btree_t* btree, btree_key_t key, const void* value);
+btree_find_and_compare(const struct cs_btree* btree, cs_btree_key key, const void* value);
 
 /*!
  * @brief Gets any item from the btree.
@@ -223,7 +223,7 @@ btree_find_and_compare(const struct btree_t* btree, btree_key_t key, const void*
  * specific, but deterministic.
  */
 CSTRUCTURES_PUBLIC_API void*
-btree_get_any_value(const struct btree_t* btree);
+btree_get_any_value(const struct cs_btree* btree);
 
 /*!
  * @brief Returns 1 if the specified key exists, 0 if otherwise.
@@ -233,7 +233,7 @@ btree_get_any_value(const struct btree_t* btree);
  * a logical "false" (i.e. 0).
  */
 CSTRUCTURES_PUBLIC_API int
-btree_key_exists(struct btree_t* btree, btree_key_t key);
+btree_key_exists(struct cs_btree* btree, cs_btree_key key);
 
 /*!
  * @brief Returns a key that does not yet exist in the btree.
@@ -241,8 +241,8 @@ btree_key_exists(struct btree_t* btree, btree_key_t key);
  * @param[in] btree The btree to generate a key from.
  * @return Returns a key that does not yet exist in the btree.
  */
-CSTRUCTURES_PUBLIC_API btree_key_t
-btree_find_unused_key(struct btree_t* btree);
+CSTRUCTURES_PUBLIC_API cs_btree_key
+btree_find_unused_key(struct cs_btree* btree);
 
 /*!
  * @brief Erases an item from the btree matching the specified key.
@@ -252,8 +252,8 @@ btree_find_unused_key(struct btree_t* btree);
  * @return Returns BTREE_OK if the key was found and erased successfully.
  * Returns BTREE_NOT_FOUND if the key was not found.
  */
-CSTRUCTURES_PUBLIC_API enum btree_status_e
-btree_erase(struct btree_t* btree, btree_key_t key);
+CSTRUCTURES_PUBLIC_API enum cs_btree_status
+btree_erase(struct cs_btree* btree, cs_btree_key key);
 
 /*!
  * @brief Erases an item from the btree by value.
@@ -265,11 +265,11 @@ btree_erase(struct btree_t* btree, btree_key_t key);
  * @return Returns the key that was associated with the value, if found. Otherwise
  * returns BTREE_INVALID_KEY;
  */
-CSTRUCTURES_PUBLIC_API btree_key_t
-btree_erase_value(struct btree_t* btree, const void* value);
+CSTRUCTURES_PUBLIC_API cs_btree_key
+btree_erase_value(struct cs_btree* btree, const void* value);
 
-btree_key_t
-btree_erase_index(struct btree_t* btree, btree_size_t idx);
+cs_btree_key
+btree_erase_index(struct cs_btree* btree, cs_btree_size idx);
 
 /*!
  * @brief A variation of btree_erase_value() where the value parameter points
@@ -281,8 +281,8 @@ btree_erase_index(struct btree_t* btree, btree_size_t idx);
  * memory.
  * @return Returns the key that was associated with the value.
  */
-CSTRUCTURES_PUBLIC_API btree_key_t
-btree_erase_internal_value(struct btree_t* btree, const void* value);
+CSTRUCTURES_PUBLIC_API cs_btree_key
+btree_erase_internal_value(struct cs_btree* btree, const void* value);
 
 /*!
  * @brief Erases all items in the tree, but keeps the underlying memory.
@@ -292,7 +292,7 @@ btree_erase_internal_value(struct btree_t* btree, const void* value);
  * @param[in] btree The btree to clear.
  */
 CSTRUCTURES_PUBLIC_API void
-btree_clear(struct btree_t* btree);
+btree_clear(struct cs_btree* btree);
 
 /*!
  * @brief Shrinks the underlying memory, usually via realloc(). If the btree
@@ -300,7 +300,7 @@ btree_clear(struct btree_t* btree);
  * @param[in] btree The tree to compact.
  */
 CSTRUCTURES_PUBLIC_API void
-btree_compact(struct btree_t* btree);
+btree_compact(struct cs_btree* btree);
 
 /*!
  * @brief Returns the number of items in the specified btree.
@@ -329,13 +329,13 @@ btree_compact(struct btree_t* btree);
  * @param[in] btree The btree to iterate.
  * @param[in] T The type of data being held in the btree.
  * @param[in] k The name to give the variable holding the current key. Will
- * be of type btree_key_t.
+ * be of type cs_btree_key.
  * @param[in] v The name to give the variable pointing to the current
  * item. Will be of type T*.
  */
 #define BTREE_FOR_EACH(btree, T, k, v) {                                      \
-    btree_size_t idx_##k;                                                     \
-    btree_key_t k;                                                            \
+    cs_btree_size idx_##k;                                                     \
+    cs_btree_key k;                                                            \
     T* v;                                                                     \
     assert(btree_value_size(btree) > 0);                                      \
     for(idx_##k = 0;                                                          \
@@ -348,8 +348,8 @@ btree_compact(struct btree_t* btree);
  * @brief Iterates over the specified btree's keys and opens a FOR_EACH scope.
  */
 #define BTREE_KEYS_FOR_EACH(btree, k) {                                       \
-    btree_size_t idx_##k;                                                     \
-    btree_key_t k;                                                            \
+    cs_btree_size idx_##k;                                                     \
+    cs_btree_key k;                                                            \
     for(idx_##k = 0;                                                          \
         idx_##k != btree_count(btree) && ((k = *BTREE_KEY(btree, idx_##k)) || 1); \
         idx_##k++) {

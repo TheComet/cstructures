@@ -12,7 +12,7 @@ struct data_t
 
 TEST(NAME, init_sets_correct_values)
 {
-    struct btree_t btree;
+    struct cs_btree btree;
     btree.count = 4;
     btree.capacity = 56;
     btree.data = (uint8_t*)4783;
@@ -28,7 +28,7 @@ TEST(NAME, init_sets_correct_values)
 
 TEST(NAME, create_initializes_btree)
 {
-    struct btree_t* btree;
+    struct cs_btree* btree;
     ASSERT_THAT(btree_create(&btree, sizeof(data_t)), Eq(BTREE_OK));
     EXPECT_THAT(btree_capacity(btree), Eq(0u));
     EXPECT_THAT(btree_count(btree), Eq(0u));
@@ -39,7 +39,7 @@ TEST(NAME, create_initializes_btree)
 
 TEST(NAME, insertion_forwards)
 {
-    struct btree_t btree;
+    struct cs_btree btree;
     btree_init(&btree, sizeof(int));
 
     int a=56, b=45, c=18, d=27, e=84;
@@ -61,7 +61,7 @@ TEST(NAME, insertion_forwards)
 
 TEST(NAME, insertion_backwards)
 {
-    struct btree_t btree;
+    struct cs_btree btree;
     btree_init(&btree, sizeof(int));
 
     int a=56, b=45, c=18, d=27, e=84;
@@ -83,7 +83,7 @@ TEST(NAME, insertion_backwards)
 
 TEST(NAME, insertion_random)
 {
-    struct btree_t btree;
+    struct cs_btree btree;
     btree_init(&btree, sizeof(int));
 
     int a=56, b=45, c=18, d=27, e=84;
@@ -104,10 +104,10 @@ TEST(NAME, insertion_random)
 
 TEST(NAME, insert_new_with_realloc_shifts_data_correctly)
 {
-    struct btree_t btree;
+    struct cs_btree btree;
     btree_init(&btree, sizeof(int));
 
-    btree_size_t midway = CSTRUCTURES_BTREE_MIN_CAPACITY / 2;
+    cs_btree_size midway = CSTRUCTURES_BTREE_MIN_CAPACITY / 2;
 
     int value = 0x55;
     btree_reserve(&btree, CSTRUCTURES_BTREE_MIN_CAPACITY);
@@ -132,7 +132,7 @@ TEST(NAME, insert_new_with_realloc_shifts_data_correctly)
 
 TEST(NAME, clear_keeps_underlying_buffer)
 {
-    struct btree_t btree;
+    struct cs_btree btree;
     btree_init(&btree, sizeof(int));
 
     int a = 53;
@@ -152,7 +152,7 @@ TEST(NAME, clear_keeps_underlying_buffer)
 
 TEST(NAME, compact_when_no_buffer_is_allocated_doesnt_crash)
 {
-    struct btree_t btree;
+    struct cs_btree btree;
     btree_init(&btree, sizeof(int));
     btree_compact(&btree);
     btree_deinit(&btree);
@@ -160,7 +160,7 @@ TEST(NAME, compact_when_no_buffer_is_allocated_doesnt_crash)
 
 TEST(NAME, compact_reduces_capacity_and_keeps_elements_in_tact)
 {
-    struct btree_t btree;
+    struct cs_btree btree;
     btree_init(&btree, sizeof(int));
 
     int a = 53;
@@ -169,7 +169,7 @@ TEST(NAME, compact_reduces_capacity_and_keeps_elements_in_tact)
     for (int i = 0; i != CSTRUCTURES_BTREE_MIN_CAPACITY; ++i)
         btree_erase(&btree, i);
 
-    btree_size_t old_capacity = btree_capacity(&btree);
+    cs_btree_size old_capacity = btree_capacity(&btree);
     btree_compact(&btree);
     EXPECT_THAT(btree_capacity(&btree), Lt(old_capacity));
     EXPECT_THAT(btree_count(&btree), Eq(CSTRUCTURES_BTREE_MIN_CAPACITY * 2));
@@ -181,7 +181,7 @@ TEST(NAME, compact_reduces_capacity_and_keeps_elements_in_tact)
 
 TEST(NAME, clear_and_compact_deletes_underlying_buffer)
 {
-    struct btree_t btree;
+    struct cs_btree btree;
     btree_init(&btree, sizeof(int));
 
     int a=53;
@@ -202,7 +202,7 @@ TEST(NAME, clear_and_compact_deletes_underlying_buffer)
 
 TEST(NAME, insert_new_existing_keys_fails)
 {
-    struct btree_t btree;
+    struct cs_btree btree;
     btree_init(&btree, sizeof(int));
 
     int a=53;
@@ -212,7 +212,7 @@ TEST(NAME, insert_new_existing_keys_fails)
 
 TEST(NAME, set_existing_fails_if_key_doesnt_exist)
 {
-    struct btree_t btree;
+    struct cs_btree btree;
     btree_init(&btree, sizeof(int));
 
     int a=53;
@@ -223,7 +223,7 @@ TEST(NAME, set_existing_fails_if_key_doesnt_exist)
 
 TEST(NAME, set_existing_key_works_on_keys_that_exist)
 {
-    struct btree_t btree;
+    struct cs_btree btree;
     btree_init(&btree, sizeof(int));
 
     int a=53, b=77, c=99, d=12;
@@ -239,7 +239,7 @@ TEST(NAME, set_existing_key_works_on_keys_that_exist)
 
 TEST(NAME, insert_or_get_works)
 {
-    struct btree_t btree;
+    struct cs_btree btree;
     btree_init(&btree, sizeof(int));
 
     int a=53, b=77, *get;
@@ -266,10 +266,10 @@ TEST(NAME, insert_or_get_works)
 
 TEST(NAME, insert_or_get_with_realloc_shifts_data_correctly)
 {
-    struct btree_t btree;
+    struct cs_btree btree;
     btree_init(&btree, sizeof(int));
 
-    btree_size_t midway = CSTRUCTURES_BTREE_MIN_CAPACITY / 2;
+    cs_btree_size midway = CSTRUCTURES_BTREE_MIN_CAPACITY / 2;
 
     int value = 0x55, *get;
     btree_reserve(&btree, CSTRUCTURES_BTREE_MIN_CAPACITY);
@@ -299,7 +299,7 @@ TEST(NAME, insert_or_get_with_realloc_shifts_data_correctly)
 
 TEST(NAME, find_on_empty_btree_doesnt_crash)
 {
-    struct btree_t btree;
+    struct cs_btree btree;
     btree_init(&btree, sizeof(int));
 
     EXPECT_THAT(btree_find(&btree, 3), IsNull());
@@ -309,7 +309,7 @@ TEST(NAME, find_on_empty_btree_doesnt_crash)
 
 TEST(NAME, find_key_on_empty_btree_doesnt_crash)
 {
-    struct btree_t btree;
+    struct cs_btree btree;
     btree_init(&btree, sizeof(int));
 
     int value=55;
@@ -320,7 +320,7 @@ TEST(NAME, find_key_on_empty_btree_doesnt_crash)
 
 TEST(NAME, find_and_compare_on_empty_btree_doesnt_crash)
 {
-    struct btree_t btree;
+    struct cs_btree btree;
     btree_init(&btree, sizeof(int));
 
     int value=55;
@@ -331,7 +331,7 @@ TEST(NAME, find_and_compare_on_empty_btree_doesnt_crash)
 
 TEST(NAME, search_for_key_using_existing_value_works)
 {
-    struct btree_t btree;
+    struct cs_btree btree;
     btree_init(&btree, sizeof(int));
 
     int a=53, b=77, c=99;
@@ -348,7 +348,7 @@ TEST(NAME, search_for_key_using_existing_value_works)
 
 TEST(NAME, search_for_key_using_non_existing_value_returns_null)
 {
-    struct btree_t btree;
+    struct cs_btree btree;
     btree_init(&btree, sizeof(int));
 
     int a=53, b=77, c=99;
@@ -364,7 +364,7 @@ TEST(NAME, search_for_key_using_non_existing_value_returns_null)
 
 TEST(NAME, find_and_compare_non_existing_key_returns_false)
 {
-    struct btree_t btree;
+    struct cs_btree btree;
     btree_init(&btree, sizeof(int));
 
     int a=53, b=77, c=99;
@@ -380,7 +380,7 @@ TEST(NAME, find_and_compare_non_existing_key_returns_false)
 
 TEST(NAME, find_and_compare_existing_key_and_different_value_returns_false)
 {
-    struct btree_t btree;
+    struct cs_btree btree;
     btree_init(&btree, sizeof(int));
 
     int a=53, b=77, c=99;
@@ -396,7 +396,7 @@ TEST(NAME, find_and_compare_existing_key_and_different_value_returns_false)
 
 TEST(NAME, find_and_compare_existing_key_and_matching_value_returns_true)
 {
-    struct btree_t btree;
+    struct cs_btree btree;
     btree_init(&btree, sizeof(int));
 
     int a=53, b=77, c=99;
@@ -412,7 +412,7 @@ TEST(NAME, find_and_compare_existing_key_and_matching_value_returns_true)
 
 TEST(NAME, key_exists_returns_false_if_key_doesnt_exist)
 {
-    struct btree_t btree;
+    struct cs_btree btree;
     btree_init(&btree, sizeof(int));
 
     int a=53, b=77, c=99;
@@ -428,7 +428,7 @@ TEST(NAME, key_exists_returns_false_if_key_doesnt_exist)
 
 TEST(NAME, key_exists_returns_true_if_key_does_exist)
 {
-    struct btree_t btree;
+    struct cs_btree btree;
     btree_init(&btree, sizeof(int));
 
     int a=53, b=77, c=99;
@@ -444,11 +444,11 @@ TEST(NAME, key_exists_returns_true_if_key_does_exist)
 
 TEST(NAME, find_unused_key_actually_returns_an_unused_key)
 {
-    struct btree_t btree;
+    struct cs_btree btree;
     btree_init(&btree, sizeof(int));
 
     int a=53, b=77, c=99, d=12;
-    btree_key_t kb, kc, kd;
+    cs_btree_key kb, kc, kd;
     btree_insert_new(&btree, 2, &a);
     btree_insert_new(&btree, kb = btree_find_unused_key(&btree), &b);
     btree_insert_new(&btree, kc = btree_find_unused_key(&btree), &c);
@@ -467,7 +467,7 @@ TEST(NAME, find_unused_key_actually_returns_an_unused_key)
 
 TEST(NAME, erase_by_key)
 {
-    struct btree_t btree;
+    struct cs_btree btree;
     btree_init(&btree, sizeof(int));
 
     int a=56, b=45, c=18, d=27, e=84;
@@ -533,7 +533,7 @@ TEST(NAME, erase_by_key)
 
 TEST(NAME, erase_by_value_on_empty_btree_doesnt_crash)
 {
-    struct btree_t btree;
+    struct cs_btree btree;
     btree_init(&btree, sizeof(int));
 
     int a=56;
@@ -544,7 +544,7 @@ TEST(NAME, erase_by_value_on_empty_btree_doesnt_crash)
 
 TEST(NAME, erase_by_value)
 {
-    struct btree_t btree;
+    struct cs_btree btree;
     btree_init(&btree, sizeof(int));
 
     int a=56, b=45, c=18, d=27, e=84;
@@ -610,7 +610,7 @@ TEST(NAME, erase_by_value)
 
 TEST(NAME, reinsertion_forwards)
 {
-    struct btree_t btree;
+    struct cs_btree btree;
     btree_init(&btree, sizeof(int));
 
     int a=56, b=45, c=18, d=27, e=84;
@@ -639,7 +639,7 @@ TEST(NAME, reinsertion_forwards)
 
 TEST(NAME, reinsertion_backwards)
 {
-    struct btree_t btree;
+    struct cs_btree btree;
     btree_init(&btree, sizeof(int));
 
     int a=56, b=45, c=18, d=27, e=84;
@@ -668,7 +668,7 @@ TEST(NAME, reinsertion_backwards)
 
 TEST(NAME, reinsertion_random)
 {
-    struct btree_t btree;
+    struct cs_btree btree;
     btree_init(&btree, sizeof(int));
 
     int a=56, b=45, c=18, d=27, e=84;
@@ -697,7 +697,7 @@ TEST(NAME, reinsertion_random)
 
 TEST(NAME, get_any_value)
 {
-    struct btree_t btree;
+    struct cs_btree btree;
     btree_init(&btree, sizeof(int));
 
     int a = 6;
@@ -713,7 +713,7 @@ TEST(NAME, get_any_value)
 
 TEST(NAME, iterate_with_no_items)
 {
-    struct btree_t btree;
+    struct cs_btree btree;
     btree_init(&btree, sizeof(int));
 
     int counter = 0;
@@ -728,7 +728,7 @@ TEST(NAME, iterate_with_no_items)
 
 TEST(NAME, iterate_5_random_items)
 {
-    struct btree_t btree;
+    struct cs_btree btree;
     btree_init(&btree, sizeof(int));
 
     int a=79579, b=235, c=347, d=124, e=457;
@@ -758,7 +758,7 @@ TEST(NAME, iterate_5_random_items)
 
 TEST(NAME, erase_in_for_loop)
 {
-    struct btree_t btree;
+    struct cs_btree btree;
     btree_init(&btree, sizeof(int));
 
     int a=79579, b=235, c=347, d=124, e=457;

@@ -15,7 +15,7 @@ static uintptr_t d_deallocations = 0;
 static uintptr_t g_ignore_hm_malloc = 0;
 uintptr_t g_bytes_in_use = 0;
 uintptr_t g_bytes_in_use_peak = 0;
-static struct hashmap_t g_report;
+static struct cs_hashmap g_report;
 
 typedef struct report_info_t
 {

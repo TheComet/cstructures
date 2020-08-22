@@ -3,9 +3,9 @@
 #include <string.h>
 #include <assert.h>
 
-#define SLOT(hm, pos)  (*(hash32_t*)((uint8_t*)hm->storage + (sizeof(hash32_t) + hm->key_size) * pos))
-#define KEY(hm, pos)   ((void*)((uint8_t*)hm->storage + (sizeof(hash32_t) + hm->key_size) * pos + sizeof(hash32_t)))
-#define VALUE(hm, pos) ((void*)((uint8_t*)hm->storage + (sizeof(hash32_t) + hm->key_size) * hm->table_count + hm->value_size * pos))
+#define SLOT(hm, pos)  (*(cs_hash32*)((uint8_t*)hm->storage + (sizeof(cs_hash32) + hm->key_size) * pos))
+#define KEY(hm, pos)   ((void*)((uint8_t*)hm->storage + (sizeof(cs_hash32) + hm->key_size) * pos + sizeof(cs_hash32)))
+#define VALUE(hm, pos) ((void*)((uint8_t*)hm->storage + (sizeof(cs_hash32) + hm->key_size) * hm->table_count + hm->value_size * pos))
 
 #ifdef CSTRUCTURES_HASHMAP_STATS
 #   include <stdio.h>
@@ -95,10 +95,10 @@
  * reserved values. In this case, return a value that is not reserved in a
  * predictable way.
  */
-static hash32_t
-hash_wrapper(const struct hashmap_t* hm, const void* data, hash32_t len)
+static cs_hash32
+hash_wrapper(const struct cs_hashmap* hm, const void* data, cs_hash32 len)
 {
-    hash32_t hash = hm->hash(data, len);
+    cs_hash32 hash = hm->hash(data, len);
     if (hash == HM_SLOT_UNUSED || hash == HM_SLOT_RIP || hash == HM_SLOT_INVALID)
         return 2;
     return hash;
@@ -106,28 +106,28 @@ hash_wrapper(const struct hashmap_t* hm, const void* data, hash32_t len)
 
 /* ------------------------------------------------------------------------- */
 static void*
-malloc_and_init_storage(hash32_t key_size, hash32_t value_size, hash32_t table_count)
+malloc_and_init_storage(cs_hash32 key_size, cs_hash32 value_size, cs_hash32 table_count)
 {
     /* Store the hashes, keys and values in one contiguous chunk of memory */
-    void* storage = MALLOC((sizeof(hash32_t) + key_size + value_size) * table_count);
+    void* storage = MALLOC((sizeof(cs_hash32) + key_size + value_size) * table_count);
     if (storage == NULL)
         return NULL;
 
     /* Initialize hash table -- NOTE: Only works if HM_SLOT_UNUSED is 0 */
-    memset(storage, 0, (sizeof(hash32_t) + key_size) * table_count);
+    memset(storage, 0, (sizeof(cs_hash32) + key_size) * table_count);
     return storage;
 }
 
 /* ------------------------------------------------------------------------- */
 static int
-resize_rehash(struct hashmap_t* hm, hash32_t new_table_count)
+resize_rehash(struct cs_hashmap* hm, cs_hash32 new_table_count)
 {
-    struct hashmap_t new_hm;
-    hash32_t i;
+    struct cs_hashmap new_hm;
+    cs_hash32 i;
 
     STATS_REHASH(hm);
 
-    memcpy(&new_hm, hm, sizeof(struct hashmap_t));
+    memcpy(&new_hm, hm, sizeof(struct cs_hashmap));
     new_hm.table_count = new_table_count;
     new_hm.slots_used = 0;
     new_hm.storage = malloc_and_init_storage(hm->key_size, hm->value_size, new_table_count);
@@ -154,8 +154,8 @@ resize_rehash(struct hashmap_t* hm, hash32_t new_table_count)
 }
 
 /* ------------------------------------------------------------------------- */
-enum hashmap_status_t
-hashmap_create(struct hashmap_t** hm, hash32_t key_size, hash32_t value_size)
+enum cs_hashmap_status
+hashmap_create(struct cs_hashmap** hm, cs_hash32 key_size, cs_hash32 value_size)
 {
     return hashmap_create_with_options(hm, key_size, value_size,
                                        HM_DEFAULT_TABLE_COUNT,
@@ -163,8 +163,8 @@ hashmap_create(struct hashmap_t** hm, hash32_t key_size, hash32_t value_size)
 }
 
 /* ------------------------------------------------------------------------- */
-CSTRUCTURES_PRIVATE_API enum hashmap_status_t
-hashmap_create_with_options(struct hashmap_t** hm,
+CSTRUCTURES_PRIVATE_API enum cs_hashmap_status
+hashmap_create_with_options(struct cs_hashmap** hm,
                             uint32_t key_size,
                             uint32_t value_size,
                             uint32_t table_count,
@@ -179,16 +179,16 @@ hashmap_create_with_options(struct hashmap_t** hm,
 }
 
 /* ------------------------------------------------------------------------- */
-enum hashmap_status_t
-hashmap_init(struct hashmap_t* hm, hash32_t key_size, hash32_t value_size)
+enum cs_hashmap_status
+hashmap_init(struct cs_hashmap* hm, cs_hash32 key_size, cs_hash32 value_size)
 {
     return hashmap_init_with_options(hm, key_size, value_size,
                                      HM_DEFAULT_TABLE_COUNT, hash32_jenkins_oaat);
 }
 
 /* ------------------------------------------------------------------------- */
-enum hashmap_status_t
-hashmap_init_with_options(struct hashmap_t* hm,
+enum cs_hashmap_status
+hashmap_init_with_options(struct cs_hashmap* hm,
                           uint32_t key_size,
                           uint32_t value_size,
                           uint32_t table_count,
@@ -215,7 +215,7 @@ hashmap_init_with_options(struct hashmap_t* hm,
 
 /* ------------------------------------------------------------------------- */
 void
-hashmap_deinit(struct hashmap_t* hm)
+hashmap_deinit(struct cs_hashmap* hm)
 {
     STATS_REPORT(hm);
     FREE(hm->storage);
@@ -223,17 +223,17 @@ hashmap_deinit(struct hashmap_t* hm)
 
 /* ------------------------------------------------------------------------- */
 void
-hashmap_free(struct hashmap_t* hm)
+hashmap_free(struct cs_hashmap* hm)
 {
     hashmap_deinit(hm);
     FREE(hm);
 }
 
 /* ------------------------------------------------------------------------- */
-enum hashmap_status_t
-hashmap_insert(struct hashmap_t* hm, const void* key, const void* value)
+enum cs_hashmap_status
+hashmap_insert(struct cs_hashmap* hm, const void* key, const void* value)
 {
-    hash32_t hash, pos, i, last_tombstone;
+    cs_hash32 hash, pos, i, last_tombstone;
 
     /* NOTE: Rehashing may change table count, make sure to compute hash after this */
     if (hm->slots_used * 100 / hm->table_count >= HM_REHASH_AT_PERCENT)
@@ -292,11 +292,11 @@ hashmap_insert(struct hashmap_t* hm, const void* key, const void* value)
 
 /* ------------------------------------------------------------------------- */
 void*
-hashmap_erase(struct hashmap_t* hm, const void* key)
+hashmap_erase(struct cs_hashmap* hm, const void* key)
 {
-    hash32_t hash = hash_wrapper(hm, key, hm->key_size);
-    hash32_t pos = hash % hm->table_count;
-    hash32_t i = 0;
+    cs_hash32 hash = hash_wrapper(hm, key, hm->key_size);
+    cs_hash32 pos = hash % hm->table_count;
+    cs_hash32 i = 0;
 
     while (1)
     {
@@ -328,11 +328,11 @@ hashmap_erase(struct hashmap_t* hm, const void* key)
 
 /* ------------------------------------------------------------------------- */
 void*
-hashmap_find(const struct hashmap_t* hm, const void* key)
+hashmap_find(const struct cs_hashmap* hm, const void* key)
 {
-    hash32_t hash = hash_wrapper(hm, key, hm->key_size);
-    hash32_t pos = hash % hm->table_count;
-    hash32_t i = 0;
+    cs_hash32 hash = hash_wrapper(hm, key, hm->key_size);
+    cs_hash32 pos = hash % hm->table_count;
+    cs_hash32 i = 0;
     while (1)
     {
         if (SLOT(hm, pos) == hash)

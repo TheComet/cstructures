@@ -10,15 +10,15 @@ static const char KEY2[16] = "KEY2";
 static const char KEY3[16] = "KEY3";
 static const char KEY4[16] = "KEY4";
 
-static hash32_t shitty_hash(const void* data, uintptr_t len)
+static cs_hash32 shitty_hash(const void* data, uintptr_t len)
 {
     return 42;
 }
-static hash32_t collide_with_shitty_hash(const void* data, uintptr_t len)
+static cs_hash32 collide_with_shitty_hash(const void* data, uintptr_t len)
 {
     return HM_DEFAULT_TABLE_COUNT + 42;
 }
-static hash32_t collide_with_shitty_hash_second_probe(const void* data, uintptr_t len)
+static cs_hash32 collide_with_shitty_hash_second_probe(const void* data, uintptr_t len)
 {
     return HM_DEFAULT_TABLE_COUNT + 45; // sequence would be 42, 43, 45, 48, ...
 }
@@ -26,7 +26,7 @@ static hash32_t collide_with_shitty_hash_second_probe(const void* data, uintptr_
 class NAME : public Test
 {
 protected:
-    hashmap_t* hm;
+    cs_hashmap* hm;
 
 public:
     virtual void SetUp()

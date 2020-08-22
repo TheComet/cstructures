@@ -4,8 +4,8 @@
 #include <string.h>
 
 /* ------------------------------------------------------------------------- */
-static enum btree_status_e
-btree_realloc(struct btree_t* btree, btree_size_t insertion_index, btree_size_t new_capacity)
+static enum cs_btree_status
+btree_realloc(struct cs_btree* btree, cs_btree_size new_capacity)
 {
     /* clamp to minimum configured capacity */
     if (new_capacity < CSTRUCTURES_BTREE_MIN_CAPACITY)
@@ -40,30 +40,31 @@ btree_realloc(struct btree_t* btree, btree_size_t insertion_index, btree_size_t 
      * The keys are correctly placed in memory, but now that the capacity has
      * grown, the values need to be moved forwards in the data buffer
      */
-    if (insertion_index == BTREE_INVALID_KEY)
+    /*if (insertion_index == BTREE_INVALID_KEY)*/
     {
-        btree_size_t old_capacity = btree->capacity;
+        cs_btree_size old_capacity = btree->capacity;
         void* old_values = BTREE_VALUE_BEG_CAP(btree, old_capacity);
         void* new_values = BTREE_VALUE_BEG_CAP(btree, new_capacity);
         memmove(new_values, old_values, old_capacity * btree->value_size);
     }
+    /* no longer needed?
     else
     {
-        btree_size_t old_capacity = btree->capacity;
+        cs_btree_size old_capacity = btree->capacity;
         void* old_lower_values = BTREE_VALUE_BEG_CAP(btree, old_capacity);
         void* new_lower_values = BTREE_VALUE_BEG_CAP(btree, new_capacity);
         void* old_upper_values = BTREE_VALUE_CAP(btree, insertion_index, old_capacity);
         void* new_upper_values = BTREE_VALUE_CAP(btree, insertion_index + 1, new_capacity);
-        btree_size_t lower_values_to_move = insertion_index;
-        btree_size_t upper_values_to_move = old_capacity - insertion_index;
-        btree_key_t* old_upper_keys = BTREE_KEY(btree, insertion_index);
-        btree_key_t* new_upper_keys = BTREE_KEY(btree, insertion_index + 1);
-        btree_size_t keys_to_move = old_capacity - insertion_index;
+        cs_btree_size lower_values_to_move = insertion_index;
+        cs_btree_size upper_values_to_move = old_capacity - insertion_index;
+        cs_btree_key* old_upper_keys = BTREE_KEY(btree, insertion_index);
+        cs_btree_key* new_upper_keys = BTREE_KEY(btree, insertion_index + 1);
+        cs_btree_size keys_to_move = old_capacity - insertion_index;
 
         memmove(new_upper_values, old_upper_values, upper_values_to_move * btree->value_size);
         memmove(new_lower_values, old_lower_values, lower_values_to_move * btree->value_size);
         memmove(new_upper_keys, old_upper_keys, keys_to_move);
-    }
+    }*/
 
     /*
      * If the new capacity is smaller than the old capacity, we have to realloc
@@ -91,8 +92,8 @@ btree_realloc(struct btree_t* btree, btree_size_t insertion_index, btree_size_t 
 }
 
 /* ------------------------------------------------------------------------- */
-enum btree_status_e
-btree_create(struct btree_t** btree, uint32_t value_size)
+enum cs_btree_status
+btree_create(struct cs_btree** btree, uint32_t value_size)
 {
     *btree = MALLOC(sizeof **btree);
     if (*btree == NULL)
@@ -103,7 +104,7 @@ btree_create(struct btree_t** btree, uint32_t value_size)
 
 /* ------------------------------------------------------------------------- */
 void
-btree_init(struct btree_t* btree, uint32_t value_size)
+btree_init(struct cs_btree* btree, uint32_t value_size)
 {
     assert(btree);
     btree->data = NULL;
@@ -113,7 +114,7 @@ btree_init(struct btree_t* btree, uint32_t value_size)
 }
 
 /* ------------------------------------------------------------------------- */
-void btree_deinit(struct btree_t* btree)
+void btree_deinit(struct cs_btree* btree)
 {
     assert(btree);
     btree_clear(btree);
@@ -122,7 +123,7 @@ void btree_deinit(struct btree_t* btree)
 
 /* ------------------------------------------------------------------------- */
 void
-btree_free(struct btree_t* btree)
+btree_free(struct cs_btree* btree)
 {
     assert(btree);
     btree_deinit(btree);
@@ -130,12 +131,12 @@ btree_free(struct btree_t* btree)
 }
 
 /* ------------------------------------------------------------------------- */
-enum btree_status_e btree_reserve(struct btree_t* btree, btree_size_t size)
+enum cs_btree_status btree_reserve(struct cs_btree* btree, cs_btree_size size)
 {
     if (btree->capacity < size)
     {
-        enum btree_status_e status;
-        if ((status = btree_realloc(btree, BTREE_INVALID_KEY, size)) != BTREE_OK)
+        enum cs_btree_status status;
+        if ((status = btree_realloc(btree, size)) != BTREE_OK)
             return status;
     }
 
@@ -153,13 +154,13 @@ enum btree_status_e btree_reserve(struct btree_t* btree, btree_size_t size)
  *    returned pointer will point to the address after the last valid key in
  *    the array.
  */
-static btree_key_t*
-btree_find_lower_bound(const struct btree_t* btree, btree_key_t key)
+static cs_btree_key*
+btree_find_lower_bound(const struct cs_btree* btree, cs_btree_key key)
 {
-    btree_size_t half;
-    btree_key_t* middle;
-    btree_key_t* found;
-    btree_size_t len;
+    cs_btree_size half;
+    cs_btree_key* middle;
+    cs_btree_key* found;
+    cs_btree_size len;
 
     assert(btree);
 
@@ -184,19 +185,19 @@ btree_find_lower_bound(const struct btree_t* btree, btree_key_t key)
 }
 
 /* ------------------------------------------------------------------------- */
-enum btree_status_e
-btree_insert_new(struct btree_t* btree, btree_key_t key, const void* value)
+enum cs_btree_status
+btree_insert_new(struct cs_btree* btree, cs_btree_key key, const void* value)
 {
-    btree_key_t* lower_bound;
-    btree_size_t insertion_index;
-    btree_size_t entries_to_move;
-    enum btree_status_e status;
+    cs_btree_key* lower_bound;
+    cs_btree_size insertion_index;
+    cs_btree_size entries_to_move;
+    enum cs_btree_status status;
 
     assert(btree);
 
     /* May need to realloc */
     if (BTREE_NEEDS_REALLOC(btree))
-        if ((status = btree_realloc(btree, BTREE_INVALID_KEY, btree->capacity * CSTRUCTURES_BTREE_EXPAND_FACTOR)) != BTREE_OK)
+        if ((status = btree_realloc(btree, btree->capacity * CSTRUCTURES_BTREE_EXPAND_FACTOR)) != BTREE_OK)
             return status;
 
     /* lookup location in btree to insert */
@@ -207,11 +208,11 @@ btree_insert_new(struct btree_t* btree, btree_key_t key, const void* value)
 
     /* Move entries out of the way to make space for new entry */
     entries_to_move = btree_count(btree) - insertion_index;
-    memmove(lower_bound + 1, lower_bound, entries_to_move * sizeof(btree_key_t));
+    memmove(lower_bound + 1, lower_bound, entries_to_move * sizeof(cs_btree_key));
     memmove(BTREE_VALUE(btree, insertion_index + 1), BTREE_VALUE(btree, insertion_index), entries_to_move * btree->value_size);
 
     /* Copy key/value into storage */
-    memcpy(BTREE_KEY(btree, insertion_index), &key, sizeof(btree_key_t));
+    memcpy(BTREE_KEY(btree, insertion_index), &key, sizeof(cs_btree_key));
     if (btree->value_size)
         memcpy(BTREE_VALUE(btree, insertion_index), value, btree->value_size);
     btree->count++;
@@ -220,8 +221,8 @@ btree_insert_new(struct btree_t* btree, btree_key_t key, const void* value)
 }
 
 /* ------------------------------------------------------------------------- */
-enum btree_status_e
-btree_set_existing(struct btree_t* btree, btree_key_t key, const void* value)
+enum cs_btree_status
+btree_set_existing(struct cs_btree* btree, cs_btree_key key, const void* value)
 {
     void* found;
     assert(btree);
@@ -239,13 +240,13 @@ btree_set_existing(struct btree_t* btree, btree_key_t key, const void* value)
 }
 
 /* ------------------------------------------------------------------------- */
-enum btree_status_e
-btree_insert_or_get(struct btree_t* btree, btree_key_t key, const void* value, void** inserted_value)
+enum cs_btree_status
+btree_insert_or_get(struct cs_btree* btree, cs_btree_key key, const void* value, void** inserted_value)
 {
-    btree_key_t* lower_bound;
-    btree_size_t insertion_index;
-    btree_size_t entries_to_move;
-    enum btree_status_e status;
+    cs_btree_key* lower_bound;
+    cs_btree_size insertion_index;
+    cs_btree_size entries_to_move;
+    enum cs_btree_status status;
 
     assert(btree);
     assert(btree->value_size > 0);
@@ -254,7 +255,7 @@ btree_insert_or_get(struct btree_t* btree, btree_key_t key, const void* value, v
 
     /* May need to realloc */
     if (BTREE_NEEDS_REALLOC(btree))
-        if ((status = btree_realloc(btree, BTREE_INVALID_KEY, btree->capacity * CSTRUCTURES_BTREE_EXPAND_FACTOR)) != BTREE_OK)
+        if ((status = btree_realloc(btree, btree->capacity * CSTRUCTURES_BTREE_EXPAND_FACTOR)) != BTREE_OK)
             return status;
 
     /* lookup location in btree to insert */
@@ -269,10 +270,10 @@ btree_insert_or_get(struct btree_t* btree, btree_key_t key, const void* value, v
 
     /* Move entries out of the way to make space for new entry */
     entries_to_move = btree_count(btree) - insertion_index;
-    memmove(lower_bound + 1, lower_bound, entries_to_move * sizeof(btree_key_t));
+    memmove(lower_bound + 1, lower_bound, entries_to_move * sizeof(cs_btree_key));
     memmove(BTREE_VALUE(btree, insertion_index + 1), BTREE_VALUE(btree, insertion_index), entries_to_move * btree->value_size);
 
-    memcpy(BTREE_KEY(btree, insertion_index), &key, sizeof(btree_key_t));
+    memcpy(BTREE_KEY(btree, insertion_index), &key, sizeof(cs_btree_key));
     memcpy(BTREE_VALUE(btree, insertion_index), value, btree->value_size);
     *inserted_value = BTREE_VALUE(btree, insertion_index);
     btree->count++;
@@ -282,10 +283,10 @@ btree_insert_or_get(struct btree_t* btree, btree_key_t key, const void* value, v
 
 /* ------------------------------------------------------------------------- */
 void*
-btree_find(const struct btree_t* btree, btree_key_t key)
+btree_find(const struct cs_btree* btree, cs_btree_key key)
 {
-    btree_key_t* lower_bound;
-    btree_size_t idx;
+    cs_btree_key* lower_bound;
+    cs_btree_size idx;
 
     assert(btree);
     assert(btree->value_size > 0);
@@ -299,11 +300,11 @@ btree_find(const struct btree_t* btree, btree_key_t key)
 }
 
 /* ------------------------------------------------------------------------- */
-static btree_size_t
-btree_find_index_of_matching_value(const struct btree_t* btree, const void* value)
+static cs_btree_size
+btree_find_index_of_matching_value(const struct cs_btree* btree, const void* value)
 {
     void* current_value;
-    btree_size_t i;
+    cs_btree_size i;
 
     for (i = 0, current_value = BTREE_VALUE_BEG(btree);
          i != btree_count(btree);
@@ -313,20 +314,20 @@ btree_find_index_of_matching_value(const struct btree_t* btree, const void* valu
             return i;
     }
 
-    return (btree_size_t)-1;
+    return (cs_btree_size)-1;
 }
 
 /* ------------------------------------------------------------------------- */
-btree_key_t*
-btree_find_key(const struct btree_t* btree, const void* value)
+cs_btree_key*
+btree_find_key(const struct cs_btree* btree, const void* value)
 {
-    btree_size_t i;
+    cs_btree_size i;
 
     assert(btree);
     assert(btree->value_size > 0);
     assert(value);
 
-    if ((i = btree_find_index_of_matching_value(btree, value)) == (btree_size_t)-1)
+    if ((i = btree_find_index_of_matching_value(btree, value)) == (cs_btree_size)-1)
         return NULL;
 
     return BTREE_KEY(btree, i);
@@ -334,7 +335,7 @@ btree_find_key(const struct btree_t* btree, const void* value)
 
 /* ------------------------------------------------------------------------- */
 int
-btree_find_and_compare(const struct btree_t* btree, btree_key_t key, const void* value)
+btree_find_and_compare(const struct cs_btree* btree, cs_btree_key key, const void* value)
 {
     void* inserted_value;
 
@@ -351,7 +352,7 @@ btree_find_and_compare(const struct btree_t* btree, btree_key_t key, const void*
 
 /* ------------------------------------------------------------------------- */
 void*
-btree_get_any_value(const struct btree_t* btree)
+btree_get_any_value(const struct cs_btree* btree)
 {
     assert(btree);
     assert(btree->value_size > 0);
@@ -363,9 +364,9 @@ btree_get_any_value(const struct btree_t* btree)
 
 /* ------------------------------------------------------------------------- */
 int
-btree_key_exists(struct btree_t* btree, btree_key_t key)
+btree_key_exists(struct cs_btree* btree, cs_btree_key key)
 {
-    btree_key_t* lower_bound;
+    cs_btree_key* lower_bound;
 
     assert(btree);
 
@@ -376,10 +377,10 @@ btree_key_exists(struct btree_t* btree, btree_key_t key)
 }
 
 /* ------------------------------------------------------------------------- */
-btree_key_t
-btree_find_unused_key(struct btree_t* btree)
+cs_btree_key
+btree_find_unused_key(struct cs_btree* btree)
 {
-    btree_key_t key = 0;
+    cs_btree_key key = 0;
 
     assert(btree);
 
@@ -391,17 +392,17 @@ btree_find_unused_key(struct btree_t* btree)
 }
 
 /* ------------------------------------------------------------------------- */
-btree_key_t
-btree_erase_index(struct btree_t* btree, btree_size_t idx)
+cs_btree_key
+btree_erase_index(struct cs_btree* btree, cs_btree_size idx)
 {
-    btree_key_t* lower_bound;
-    btree_key_t key;
-    btree_size_t entries_to_move;
+    cs_btree_key* lower_bound;
+    cs_btree_key key;
+    cs_btree_size entries_to_move;
 
     lower_bound = BTREE_KEY(btree, idx);
     key = *lower_bound;
     entries_to_move = btree_count(btree) - idx;
-    memmove(lower_bound, lower_bound+1, entries_to_move * sizeof(btree_key_t));
+    memmove(lower_bound, lower_bound+1, entries_to_move * sizeof(cs_btree_key));
     memmove(BTREE_VALUE(btree, idx), BTREE_VALUE(btree, idx+1), entries_to_move * btree->value_size);
     btree->count--;
 
@@ -409,10 +410,10 @@ btree_erase_index(struct btree_t* btree, btree_size_t idx)
 }
 
 /* ------------------------------------------------------------------------- */
-enum btree_status_e
-btree_erase(struct btree_t* btree, btree_key_t key)
+enum cs_btree_status
+btree_erase(struct cs_btree* btree, cs_btree_key key)
 {
-    btree_key_t* lower_bound;
+    cs_btree_key* lower_bound;
 
     assert(btree);
 
@@ -426,27 +427,27 @@ btree_erase(struct btree_t* btree, btree_key_t key)
 }
 
 /* ------------------------------------------------------------------------- */
-btree_key_t
-btree_erase_value(struct btree_t* btree, const void* value)
+cs_btree_key
+btree_erase_value(struct cs_btree* btree, const void* value)
 {
-    btree_size_t idx;
+    cs_btree_size idx;
 
     assert(btree);
     assert(btree->value_size > 0);
     assert(value);
 
     idx = btree_find_index_of_matching_value(btree, value);
-    if (idx == (btree_size_t)-1)
+    if (idx == (cs_btree_size)-1)
         return BTREE_INVALID_KEY;
 
     return btree_erase_index(btree, idx);
 }
 
 /* ------------------------------------------------------------------------- */
-btree_key_t
-btree_erase_internal_value(struct btree_t* btree, const void* value)
+cs_btree_key
+btree_erase_internal_value(struct cs_btree* btree, const void* value)
 {
-    btree_size_t idx;
+    cs_btree_size idx;
 
     assert(btree);
     assert(btree->value_size > 0);
@@ -460,7 +461,7 @@ btree_erase_internal_value(struct btree_t* btree, const void* value)
 
 /* ------------------------------------------------------------------------- */
 void
-btree_clear(struct btree_t* btree)
+btree_clear(struct cs_btree* btree)
 {
     assert(btree);
 
@@ -469,7 +470,7 @@ btree_clear(struct btree_t* btree)
 
 /* ------------------------------------------------------------------------- */
 void
-btree_compact(struct btree_t* btree)
+btree_compact(struct cs_btree* btree)
 {
     assert(btree);
 
@@ -481,6 +482,6 @@ btree_compact(struct btree_t* btree)
     }
     else
     {
-        btree_realloc(btree, BTREE_INVALID_KEY, btree_count(btree));
+        btree_realloc(btree, btree_count(btree));
     }
 }
