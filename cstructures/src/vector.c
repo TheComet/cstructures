@@ -290,9 +290,7 @@ void
 vector_erase_index(struct cs_vector* vector, cs_vec_idx index)
 {
     assert(vector);
-
-    if (index >= vector->count)
-        return;
+    assert (index < vector->count);
 
     if (index == vector->count - 1)
         /* last element doesn't require memory shifting, just pop it */
@@ -341,7 +339,7 @@ vector_get_element(const struct cs_vector* vector, cs_vec_idx index)
 
 /* ------------------------------------------------------------------------- */
 cs_vec_idx
-vector_find_element(const struct cs_vector* vector, void* element)
+vector_find_element(const struct cs_vector* vector, const void* element)
 {
     cs_vec_idx i;
     for (i = 0; i != vector_count(vector); ++i)
