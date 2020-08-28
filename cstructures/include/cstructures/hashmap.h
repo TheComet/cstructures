@@ -1,5 +1,4 @@
-#ifndef WAVESIM_MAP_H
-#define WAVESIM_MAP_H
+#pragma once
 
 #include "cstructures/config.h"
 #include "cstructures/hash.h"
@@ -171,5 +170,3 @@ hashmap_find_str(struct cs_hashmap* hm, const char* key);
 #define HASHMAP_END_EACH }}
 
 C_END
-
-#endif /* WAVESIM_MAP_H */

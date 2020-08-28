@@ -7,9 +7,7 @@
  * Because of this, vector access is just as efficient as a normal array, but
  * they are able to grow and shrink in size automatically.
  */
-
-#ifndef CSTRUCTURES_VECTOR_H
-#define CSTRUCTURES_VECTOR_H
+#pragma once
 
 #include "cstructures/config.h"
 #include <stdint.h>
@@ -317,5 +315,3 @@ vector_reverse(struct cs_vector* vector);
 #define VECTOR_END_EACH }}
 
 C_END
-
-#endif /* CSTRUCTURES_VECTOR_H */

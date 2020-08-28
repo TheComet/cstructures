@@ -1,5 +1,4 @@
-#ifndef CSTRUCTURES_HASH_H
-#define CSTRUCTURES_HASH_H
+#pragma once
 
 #include "cstructures/config.h"
 #include <stdint.h>
@@ -26,5 +25,3 @@ CSTRUCTURES_PUBLIC_API cs_hash32
 hash32_combine(cs_hash32 lhs, cs_hash32 rhs);
 
 C_END
-
-#endif /* CSTRUCTURES_HASH_H */

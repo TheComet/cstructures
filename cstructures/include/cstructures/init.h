@@ -1,5 +1,4 @@
-#ifndef CSTRUCTURES_INIT_H
-#define CSTRUCTURES_INIT_H
+#pragma once
 
 #include "cstructures/config.h"
 
@@ -12,5 +11,3 @@ CSTRUCTURES_PUBLIC_API void
 cstructures_deinit(void);
 
 C_END
-
-#endif /* CSTRUCTURES_INIT_H */

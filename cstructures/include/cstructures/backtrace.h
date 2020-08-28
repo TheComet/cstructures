@@ -1,5 +1,4 @@
-#ifndef CSTRUCTURES_BACKTRACE_H
-#define CSTRUCTURES_BACKTRACE_H
+#pragma once
 
 #define CSTRUCTURES_BACKTRACE_SIZE 64
 
@@ -17,5 +16,3 @@ CSTRUCTURES_PRIVATE_API char**
 get_backtrace(int* size);
 
 C_END
-
-#endif /* CSTRUCTURES_BACKTRACE_H */

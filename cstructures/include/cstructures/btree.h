@@ -1,5 +1,4 @@
-#ifndef CSTRUCTURES_BTREE_H
-#define CSTRUCTURES_BTREE_H
+#pragma once
 
 #include "cstructures/config.h"
 #include "cstructures/hash.h"
@@ -374,5 +373,3 @@ btree_compact(struct cs_btree* btree);
     } while(0)
 
 C_END
-
-#endif /* CSTRUCTURES_BTREE_H */

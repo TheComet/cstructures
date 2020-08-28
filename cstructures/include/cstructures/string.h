@@ -1,5 +1,4 @@
-#ifndef CSTRUCTURES_STRING_H
-#define CSTRUCTURES_STRING_H
+#pragma once
 
 #include "cstructures/config.h"
 #include "cstructures/vector.h"
@@ -51,5 +50,3 @@ cs_stringtok(struct cs_string* str, char delimiter, char** saveptr);
         ((char*)vector_data(&(str)->buf))
 
 C_END
-
-#endif  /* CSTRUCTURES_STRING_H */

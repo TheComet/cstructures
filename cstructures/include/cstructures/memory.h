@@ -1,5 +1,4 @@
-#ifndef CSTRUCTURES_MEMORY_H
-#define CSTRUCTURES_MEMORY_H
+#pragma once
 
 #include "cstructures/config.h"
 #include <stdint.h>
@@ -72,5 +71,3 @@ CSTRUCTURES_PRIVATE_API void
 mutated_string_and_hex_dump(const void* data, uintptr_t size_in_bytes);
 
 C_END
-
-#endif /* CSTRUCTURES_MEMORY_H */
