@@ -63,8 +63,7 @@ struct cs_hashmap
  * calling hashmap_insert(), value_size number of bytes are copied from the
  * memory pointed to by value into the hashmap.
  * @note This parameter may be 0.
- * @return If successful, returns CSTRUCTURES_OK. If allocation fails,
- * CSTRUCTURES_ERR_OUT_OF_MEMORY is returned.
+ * @return If successful, returns HM_OK. If allocation fails, HM_OOM is returned.
  */
 CSTRUCTURES_PRIVATE_API enum cs_hashmap_status
 hashmap_create(struct cs_hashmap** hm,
@@ -117,18 +116,19 @@ hashmap_reserve(struct cs_hashmap* hm,
  * @param[in] hm A pointer to a valid hashmap object.
  * @param[in] key A pointer to where the key is stored. key_size number of
  * bytes are hashed and copied into the hashmap from this location in
- * memory. See hashmap_create() on key_size.
+ * memory. @see hashmap_create() regarding key_size.
  * @param[in] value A pointer to where the value is stored. value_size number
  * of bytes are copied from this location in memory into the hashmap. If
  * value_size is 0, then nothing is copied.
  * @return If the key already exists, then nothing is copied into the hashmap
- * and CSTRUCTURES_HASH_EXISTS is returned. If the key is successfully inserted, CSTRUCTURES_OK
- * is returned. If insertion failed, CSTRUCTURES_ERR_OUT_OF_MEMORY is returned.
+ * and HM_EXISTS is returned. If the key is successfully inserted, HM_OK
+ * is returned. If insertion failed, HM_OOM is returned.
  */
 CSTRUCTURES_PRIVATE_API enum cs_hashmap_status
-hashmap_insert(struct cs_hashmap* hm,
-               const void* key,
-               const void* value);
+hashmap_insert(
+    struct cs_hashmap* hm,
+    const void* key,
+    const void* value);
 
 CSTRUCTURES_PRIVATE_API enum cs_hashmap_status
 hashmap_insert_str(struct cs_hashmap* hm,
